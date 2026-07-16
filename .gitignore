@@ -27,3 +27,7 @@ tsconfig.tsbuildinfo
 # Editor
 .vscode/
 .idea/
+
+# Local project credential documentation
+PROJECT_SETUP.md
+PROJECT_CREDENTIALS.md
