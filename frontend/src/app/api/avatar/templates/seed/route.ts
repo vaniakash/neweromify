@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import { AvatarTemplate } from "@/models/AvatarTemplate";
 
-const CLOUDINARY_BASE = "https://res.cloudinary.com/nxg2vmmu/image/upload/modie";
+const CLOUDINARY_BASE = "https://res.cloudinary.com/z6nizbkh/image/upload/modie";
 const CLOUDINARY_FOLDER = "modie";
 
 // All known templates with their Cloudinary filenames

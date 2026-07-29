@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { LayoutTemplate, Search, Filter } from 'lucide-react';
 import { TemplateModal } from './TemplateModal';
 
-const CLOUDINARY = 'https://res.cloudinary.com/nxg2vmmu/image/upload/modie';
+const CLOUDINARY = 'https://res.cloudinary.com/z6nizbkh/image/upload/modie';
 
 const MOCK_TEMPLATES = [
   // ── Female Templates ──

@@ -10,7 +10,7 @@ import { X } from "lucide-react";
 export function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [showPromoBanner, setShowPromoBanner] = useState(true);
-  
+
   if (pathname.startsWith("/admin")) {
     return <>{children}</>;
   }

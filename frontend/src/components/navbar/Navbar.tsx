@@ -84,7 +84,6 @@ export function Navbar() {
             <div className="w-16 h-16 relative">
               <Image src="/eromifylogo.png" alt="Eromify Logo" fill className="object-contain" priority />
             </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">Eromify</span>
           </Link>
         </div>
 
@@ -152,14 +151,12 @@ export function Navbar() {
                       alt="User"
                       width={36}
                       height={36}
-                      className={`rounded-full border-2 transition-colors ${
-                        profileOpen ? "border-[#1736cf]" : "border-slate-200 hover:border-[#1736cf]"
-                      }`}
+                      className={`rounded-full border-2 transition-colors ${profileOpen ? "border-[#1736cf]" : "border-slate-200 hover:border-[#1736cf]"
+                        }`}
                     />
                   ) : (
-                    <div className={`w-9 h-9 bg-[#1736cf]/10 text-[#1736cf] rounded-full flex items-center justify-center border-2 transition-colors ${
-                      profileOpen ? "border-[#1736cf]" : "border-transparent hover:border-[#1736cf]"
-                    }`}>
+                    <div className={`w-9 h-9 bg-[#1736cf]/10 text-[#1736cf] rounded-full flex items-center justify-center border-2 transition-colors ${profileOpen ? "border-[#1736cf]" : "border-transparent hover:border-[#1736cf]"
+                      }`}>
                       <UserIcon className="h-4 w-4" />
                     </div>
                   )}
@@ -174,14 +171,14 @@ export function Navbar() {
                       <p className="text-xs text-slate-500 truncate">{session.user.email}</p>
                     </div>
                     {/* MCP Keys */}
-                      <Link
-                        href="/mcp-keys"
-                        onClick={() => setProfileOpen(false)}
-                        className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors font-medium"
-                      >
-                        <Key className="h-4 w-4 text-violet-500" />
-                        MCP Keys
-                      </Link>
+                    <Link
+                      href="/mcp-keys"
+                      onClick={() => setProfileOpen(false)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors font-medium"
+                    >
+                      <Key className="h-4 w-4 text-violet-500" />
+                      MCP Keys
+                    </Link>
                     {/* Sign Out */}
                     <button
                       onClick={() => { setProfileOpen(false); signOut(); }}

@@ -24,15 +24,15 @@ import { useAnalytics } from "@/lib/useAnalytics";
 
 // ── Cloudinary CDN video URLs (served with auto quality + format) ────────────
 const CLD = {
-  seefour: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748158/eromify/homepage/seefour.mp4",
-  seedancesix: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748167/eromify/homepage/seedancesix.mp4",
-  seedance: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748179/eromify/homepage/seedance.mp4",
-  sedanc: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748190/eromify/homepage/sedanc.mp4",
-  seedancesss: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748200/eromify/homepage/seedancesss.mp4",
-  reel218: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748207/eromify/homepage/Video-218.mp4",
-  reel420: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748212/eromify/homepage/Video-420.mp4",
-  reel480: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748221/eromify/homepage/Video-480.mp4",
-  reel525: "https://res.cloudinary.com/dmbrsdmfb/video/upload/q_auto,f_auto/v1778748226/eromify/homepage/Video-525.mp4",
+  seefour: "https://res.cloudinary.com/z6nizbkh/video/upload/q_auto,f_auto/v1778748158/eromify/homepage/seefour.mp4",
+  seedancesix: "https://res.cloudinary.com/z6nizbkh/video/upload/q_auto,f_auto/v1778748167/eromify/homepage/seedancesix.mp4",
+  seedance: "https://res.cloudinary.com/z6nizbkh/video/upload/q_auto,f_auto/v1778748179/eromify/homepage/seedance.mp4",
+  sedanc: "https://res.cloudinary.com/z6nizbkh/video/upload/q_auto,f_auto/v1778748190/eromify/homepage/sedanc.mp4",
+  seedancesss: "https://res.cloudinary.com/z6nizbkh/video/upload/q_auto,f_auto/v1778748200/eromify/homepage/seedancesss.mp4",
+  reel218: "/video/288bc2e5acb546f49d5d7cc82fc579a4.mp4",
+  reel420: "/video/33f2ca62194a4c84b5d7053759dfa639.mp4",
+  reel480: "/video/37344a8a6bf6480eb50595c350d7764b.mp4",
+  reel525: "/video/572d0a015aed411c987f968d771aa470.mp4",
 };
 
 const FAQS = [
@@ -57,8 +57,6 @@ export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [showAIPromo, setShowAIPromo] = useState(false);
   const [isUserPro, setIsUserPro] = useState(false);
-  const [userCount, setUserCount] = useState(0);
-  const [targetCount, setTargetCount] = useState(259);
   const [mutedMap, setMutedMap] = useState<Record<number, boolean>>({});
   const toggleMute = (i: number) =>
     setMutedMap(prev => ({ ...prev, [i]: !prev[i] }));
@@ -77,28 +75,6 @@ export default function HomePage() {
   };
 
   const { trackEvent } = useAnalytics("homepage");
-
-  useEffect(() => {
-    fetch("/api/stats/users")
-      .then(res => res.json())
-      .then(data => {
-        if (data && typeof data.count === "number") {
-          // If DB has fewer than 259, still use 259 as base so it doesn't look empty
-          setTargetCount(data.count > 259 ? data.count : 259);
-        }
-      })
-      .catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    if (userCount < targetCount) {
-      const step = Math.max(1, Math.ceil(targetCount / 50));
-      const timer = setTimeout(() => {
-        setUserCount(prev => (prev + step > targetCount ? targetCount : prev + step));
-      }, 30);
-      return () => clearTimeout(timer);
-    }
-  }, [userCount, targetCount]);
 
   useEffect(() => {
     const checkPro = () => {
@@ -156,20 +132,19 @@ export default function HomePage() {
           <div className="relative z-10 max-w-2xl">
 
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#1736cf]/10 text-[#1736cf] text-sm font-semibold rounded-full mb-5">
-              <Zap className="h-3.5 w-3.5" />
-              Powerful AI. Affordable for Everyone.
+              ⚡ Create Without Limits.
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-slate-900 mb-5 leading-[1.1]">
-              The Ultimate AI{" "}
+              Your AI-Powered{" "}
               <br className="hidden sm:block" />
               <span className="text-[#1736cf]">
-                Influencer Platform
+                Content Studio
               </span>
             </h1>
 
             <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-              Create Photos, Videos & Content Effortlessly
+              Create stunning influencers, images, videos, and content — all in one place.
             </p>
 
             {/* FEATURES */}
@@ -226,10 +201,7 @@ export default function HomePage() {
               <Users className="text-amber-500" />
               <div>
                 <p className="font-bold flex items-center gap-2">
-                  <span className="tabular-nums">{userCount}</span> total users
-                </p>
-                <p className="text-sm text-slate-500">
-                  in 2 months
+                  <span className="tabular-nums">20+</span> ai model
                 </p>
               </div>
             </div>
@@ -268,19 +240,19 @@ export default function HomePage() {
 
               {/* Headline */}
               <h2 className="text-center text-3xl sm:text-4xl lg:text-6xl font-black text-white leading-[1.05] tracking-tight mb-5 uppercase">
-                Turn{" "}
+                Bring Your Creative
+                <br className="hidden sm:block" /> Workflow Into{" "}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/claude-color.webp"
                   alt="Claude"
                   className="inline-block h-10 sm:h-12 lg:h-16 w-auto align-middle -mt-1 mx-1"
                 />{" "}
-                Claude Into Your
-                <br className="hidden sm:block" /> Creative Engine
+                Claude
               </h2>
 
-              <p className="text-center text-slate-400 text-base sm:text-lg max-w-2xl mx-auto mb-12 leading-relaxed">
-                Plug Eromify into Claude and generate avatar portraits, cinematic videos, and full content weeks &mdash; all without leaving your chat window.
+              <p className="text-center text-slate-400 text-base sm:text-lg max-w-3xl mx-auto mb-12 leading-relaxed">
+                Connect Creategen with Claude and turn simple prompts into AI influencer photos, cinematic videos, and ready-to-publish content &mdash; without leaving your conversation.
               </p>
 
               {/* Two-column layout */}
@@ -298,7 +270,7 @@ export default function HomePage() {
                         <div className="w-3 h-3 rounded-full bg-emerald-400/80" />
                       </div>
                       <span className="text-[10px] font-mono text-slate-500 tracking-widest uppercase">
-                        Claude &middot; Eromify Connector
+                        Claude &times; Creategen
                       </span>
                       <div className="w-12" />
                     </div>
@@ -309,7 +281,7 @@ export default function HomePage() {
                       {/* User bubble */}
                       <div className="flex justify-end">
                         <div className="max-w-[85%] bg-white/8 border border-white/10 rounded-2xl rounded-tr-sm px-4 py-3 text-sm text-slate-200 leading-relaxed">
-                          Shoot 6 IG-ready photos of Aria this week &mdash; mix outfits, moods, and lighting. Indoor cafe vibes and outdoor rooftop. 4:5 portrait.
+                          Create 6 Instagram-ready photos of Aria for this week &mdash; different outfits, moods, and lighting. Mix cozy indoor scenes with rooftop golden-hour shots. 4:5 portrait.
                         </div>
                       </div>
 
@@ -321,7 +293,7 @@ export default function HomePage() {
                         </div>
                         <div className="flex-1 text-sm text-slate-300 leading-relaxed">
                           <p className="mb-3">
-                            On it. Generating 6 portraits of Aria &mdash; mixing warm cafe corners, rooftop golden hour, and moody studio lighting.
+                            On it. Creating 6 photos of Aria with caf&eacute; warmth, rooftop golden hour, and cinematic studio lighting.
                           </p>
 
                           {/* Image grid */}
@@ -360,18 +332,18 @@ export default function HomePage() {
                   {[
                     {
                       num: "01",
-                      title: "Address your avatars by name",
-                      body: "Aria, Maya, Luna — Claude knows which persona to use and keeps them in character across every prompt.",
+                      title: "Keep Every Avatar Consistent",
+                      body: "Give your avatars a name and Claude knows exactly who to create. Aria, Maya, Luna — each persona stays consistent across your entire workflow.",
                     },
                     {
                       num: "02",
-                      title: "Batch-generate a week of content",
-                      body: "One prompt, one send. Twelve portraits rendered while you plan what to post next.",
+                      title: "Create a Full Content Batch in One Go",
+                      body: "One prompt can generate an entire week of content, so you can focus on planning, publishing, and growing.",
                     },
                     {
                       num: "03",
-                      title: "Kick off videos without switching tabs",
-                      body: "Animate any image with Wan, Veo, or Seedance — Claude picks the right model and queues it automatically.",
+                      title: "Go From Image to Video Instantly",
+                      body: "Turn any generated image into a video with Wan, Veo, or Seedance. Choose your creative direction and let the workflow handle the rest.",
                     },
                   ].map(({ num, title, body }) => (
                     <div
@@ -406,7 +378,7 @@ export default function HomePage() {
                   href="/mcp"
                   className="text-sm font-semibold text-slate-400 hover:text-white transition-colors"
                 >
-                  See how it works
+                  Explore the Workflow
                 </Link>
               </div>
 
@@ -414,7 +386,7 @@ export default function HomePage() {
               <p className="mt-6 text-center text-xs text-slate-600 leading-relaxed">
                 Available on{" "}
                 <span className="text-slate-400 font-semibold">Growth</span> and{" "}
-                <span className="text-slate-400 font-semibold">Creator</span> plans &middot; 5-minute setup &middot; Works with Claude Desktop, claude.ai &amp; Cursor
+                <span className="text-slate-400 font-semibold">Creator</span> plans &middot; Quick setup &middot; Works with Claude Desktop, claude.ai, and Cursor
               </p>
 
             </div>
@@ -446,12 +418,14 @@ export default function HomePage() {
 
             {/* Right Content - Cards Scroll */}
             <div className="w-full lg:w-[65%] overflow-x-auto flex gap-4 pb-4 lg:pb-0 pt-2 lg:pt-0 snap-x snap-mandatory z-10 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {[
-                { title: "Create Image", img: "/loginlayout/logind.webp", link: "/tools/creator/image-generator", isNew: false },
-                { title: "Create Video", video: CLD.seefour, link: "/video-generation", isNew: false },
-                { title: "Seedance 2.0", video: CLD.seedancesix, link: "/video-generation", isNew: true },
-                { title: "Wan 2.7", video: CLD.seedance, link: "/video-generation", isNew: false },
-              ].map((tool, i) => (
+              {(
+                [
+                  { title: "Create Image", img: "/loginlayout/logind.webp", link: "/tools/creator/image-generator", isNew: false },
+                  { title: "Create Video", img: "https://res.cloudinary.com/z6nizbkh/image/upload/v1785351808/eromify/homepage/preview_1c8ef6b2072e48b88282397dc50faf03.webp", link: "/video-generation", isNew: false },
+                  { title: "Seedance 2.0", img: "https://res.cloudinary.com/z6nizbkh/image/upload/v1785351810/eromify/homepage/preview_3ad9020c086148d99d34e70bd171333b.webp", link: "/video-generation", isNew: true },
+                  { title: "Wan 2.7", img: "https://res.cloudinary.com/z6nizbkh/image/upload/v1785351811/eromify/homepage/preview_52566067c1f946cd8890ce1eaed5e634.webp", link: "/video-generation", isNew: false },
+                ] as { title: string; img?: string; video?: string; link: string; isNew: boolean }[]
+              ).map((tool, i) => (
                 <Link
                   key={i}
                   href={tool.link}
@@ -586,22 +560,13 @@ export default function HomePage() {
                   {/* Always-on Gradient for Readability */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none" />
 
-                  {/* Top row: badge + per-card mute button */}
+                  {/* Top row: badge */}
                   <div className="absolute top-3 left-0 right-0 px-3 flex items-center justify-between z-20">
                     {reel.tag ? (
                       <div className="bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-white/20">
                         {reel.tag}
                       </div>
                     ) : <div />}
-
-                    <button
-                      onClick={() => toggleMute(i)}
-                      title={mutedMap[i] !== false ? "Unmute" : "Mute"}
-                      className="flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white hover:bg-black/80 transition-all hover:scale-110 active:scale-95"
-                      style={{ fontSize: 16, lineHeight: 1 }}
-                    >
-                      {mutedMap[i] !== false ? "🔇" : "🔊"}
-                    </button>
                   </div>
 
                   {/* Bottom Info Overlay */}

@@ -20,14 +20,14 @@ const PLANS: {
   videoAccess?: boolean;
 }[] = [
     {
-      id: "value", name: "Beginner Pack", tagline: "₹99 · ~$1.19",
-      price: 99, mrp: 599, discount: 83, credits: 1200, unitPrice: "",
+      id: "value", name: "Beginner Pack", tagline: "₹499 · ~$5.99",
+      price: 499, mrp: 999, discount: 50, credits: 1500, unitPrice: "",
       accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
       iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
       icon: Star,
       badge: null, available: true,
       features: [
-        "1,200 AI Credits",
+        "1,500 AI Credits",
         "Image generation",
         "HD quality output",
         "All art styles & models",
@@ -41,15 +41,15 @@ const PLANS: {
       ],
     },
     {
-      id: "pro", name: "Creator Pack", tagline: "₹399 · ~$3.99",
-      price: 399, mrp: 1199, discount: 67, credits: 3000, unitPrice: "",
+      id: "pro", name: "Creator Pack", tagline: "₹999 · ~$11.99",
+      price: 999, mrp: 1999, discount: 50, credits: 4000, unitPrice: "",
       accent: "#a855f7", glow: "rgba(168,85,247,0.3)", border: "rgba(168,85,247,0.55)",
       iconBg: "linear-gradient(135deg,#4c1d95,#6d28d9)",
       icon: Flame,
       badge: "MOST POPULAR", available: true,
       videoAccess: true,
       features: [
-        "3,000 AI Credits",
+        "4,000 AI Credits",
         "Influencer Training",
         "Image generation",
         "🎬 Limited video generation model",
@@ -61,15 +61,15 @@ const PLANS: {
       ],
     },
     {
-      id: "mega", name: "Professional Pack", tagline: "₹499 · ~$4.99",
-      price: 499, mrp: 1499, discount: 67, credits: 10000, unitPrice: "",
+      id: "mega", name: "Professional Pack", tagline: "₹1,999 · ~$23.99",
+      price: 1999, mrp: 3999, discount: 50, credits: 12000, unitPrice: "",
       accent: "#f43f5e", glow: "rgba(244,63,94,0.28)", border: "rgba(244,63,94,0.45)",
       iconBg: "linear-gradient(135deg,#881337,#be123c)",
       icon: Layers,
       badge: "MOST POPULAR", available: true,
       videoAccess: true,
       features: [
-        "10,000 AI Credits",
+        "12,000 AI Credits",
         "Ultra HD output",
         "All art styles & models",
         "Commercial use",
@@ -89,14 +89,15 @@ const PLANS: {
       ],
     },
     {
-      id: "premium", name: "Enterprise Pack", tagline: "₹1999 · ~$19.99",
-      price: 1999, mrp: 5999, discount: 67, credits: 40000, unitPrice: "",
+      id: "premium", name: "Enterprise Pack", tagline: "₹3,999 · ~$47.99",
+      price: 3999, mrp: 7999, discount: 50, credits: 30000, unitPrice: "",
       accent: "#eab308", glow: "rgba(234,179,8,0.3)", border: "rgba(234,179,8,0.55)",
       iconBg: "linear-gradient(135deg,#a16207,#ca8a04)",
       icon: Sparkles,
       badge: "ULTIMATE", available: true,
       videoAccess: true,
       features: [
+        "30,000 AI Credits",
         "Influencer Training",
         "Image generation",
         "🎬 Video generation",
@@ -599,10 +600,10 @@ export default function PricingPage() {
                 </div>
                 <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                   {[
-                    { pack: "Beginner Pack ₹99", internal: "1,200 credits", images: "12 images", videos: "—", color: "#60a5fa" },
-                    { pack: "Creator Pack ₹399", internal: "3,000 credits", images: "30 images", videos: "2 videos", color: "#c084fc" },
-                    { pack: "Professional Pack ₹499", internal: "10,000 credits", images: "100 images", videos: "6 videos", color: "#f87171" },
-                    { pack: "Enterprise Pack ₹1999", internal: "40,000 credits", images: "400 images", videos: "26 videos", color: "#facc15" },
+                    { pack: "Beginner Pack ₹499", internal: "1,500 credits", images: "15 images", videos: "—", color: "#60a5fa" },
+                    { pack: "Creator Pack ₹999", internal: "4,000 credits", images: "40 images", videos: "2 videos", color: "#c084fc" },
+                    { pack: "Professional Pack ₹1,999", internal: "12,000 credits", images: "120 images", videos: "8 videos", color: "#f87171" },
+                    { pack: "Enterprise Pack ₹3,999", internal: "30,000 credits", images: "300 images", videos: "20 videos", color: "#facc15" },
                   ].map(({ pack, internal, images, videos, color }) => (
                     <div key={pack} className="px-6 py-4">
                       <div className="flex items-center justify-between mb-2">
@@ -644,7 +645,7 @@ export default function PricingPage() {
                 { q: "Do credits expire?", a: "Never. Once purchased, your credits stay on your account forever." },
                 { q: "Can I get a refund?", a: "Yes — 24-hour no-questions-asked refund policy. Contact support within 24 hours." },
                 { q: "What payment methods work?", a: "UPI, credit/debit cards, net banking, and all major wallets via Razorpay." },
-                { q: "Which plans include video generation?", a: "Pro Pack (₹399), Mega Pack (₹499), and Premium Pack (₹1999) include video generation access. Each video costs 1,500 credits." },
+                { q: "Which plans include video generation?", a: "Creator Pack (₹999), Professional Pack (₹1,999), and Enterprise Pack (₹3,999) include video generation access. Each video costs 1,500 credits." },
               ].map(({ q, a }, i) => (
                 <details key={i} className="group rounded-2xl border overflow-hidden" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
                   <summary className="flex items-center justify-between px-6 py-4 text-sm font-bold text-white list-none cursor-pointer select-none hover:bg-white/[0.02] transition-colors">

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   // ── Keyword-rich title matching what Google expects for brand searches ──
   title: {
-    default: "Eromify — AI Influencer Generator | Create AI Models, Images & Videos",
+    default: "Create AI Influencers, Images & Videos",
     template: "%s | Eromify",
   },
   description:

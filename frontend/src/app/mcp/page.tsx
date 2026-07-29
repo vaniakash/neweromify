@@ -20,9 +20,9 @@ export default function McpLandingPage() {
   return (
     <div className="min-h-screen bg-[#080a0f] text-slate-200 selection:bg-pink-500/30 font-sans overflow-x-hidden relative">
       {/* Background dot grid */}
-      <div 
-        className="absolute inset-0 z-0 opacity-[0.15]" 
-        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }} 
+      <div
+        className="absolute inset-0 z-0 opacity-[0.15]"
+        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
       />
 
 
@@ -35,16 +35,16 @@ export default function McpLandingPage() {
             <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full font-black tracking-normal">NEW</span>
           </div>
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[1.1] mb-8 flex flex-wrap justify-center items-center gap-x-4">
-            TURN 
+            TURN
             <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 mx-1 shrink-0 -translate-y-1 relative">
               <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
             </div>
             CLAUDE INTO YOUR
             <br className="hidden md:block" />
-            CREATIVE ENGINE
+            CREATIVE STUDIO
           </h1>
           <p className="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-20 leading-relaxed">
-            Connect Eromify to Claude and generate avatar images, videos, and full campaigns right from your conversations.
+            Connect <strong className="text-white">CreateGen</strong> with Claude to generate AI influencer portraits, cinematic videos, and weeks of content—all without leaving your chat.
           </p>
 
           {/* 3 Steps */}
@@ -62,7 +62,7 @@ export default function McpLandingPage() {
                 Settings &rarr; Connectors <ExternalLink className="w-3.5 h-3.5 opacity-50" />
               </div>
             </div>
-            
+
             {/* Step 2 */}
             <div className="p-8 text-left border-b md:border-b-0 md:border-r border-white/10">
               <div className="flex items-center gap-3 mb-6">
@@ -70,9 +70,9 @@ export default function McpLandingPage() {
                 <h3 className="text-lg font-bold text-white">Add a custom connector</h3>
               </div>
               <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                Name it <span className="text-white">Eromify</span> and paste the URL:
+                Name it <span className="text-white">CreateGen</span> and paste the URL:
               </p>
-              <div 
+              <div
                 onClick={copyUrl}
                 className="flex items-center justify-between gap-2 px-4 py-3 bg-black border border-white/10 rounded-xl text-sm font-mono text-white hover:border-white/30 cursor-pointer transition-all group"
               >
@@ -88,14 +88,14 @@ export default function McpLandingPage() {
                 <h3 className="text-lg font-bold text-white">Click Connect, approve, done</h3>
               </div>
               <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                Claude pops open Eromify in a new tab &mdash; sign in if needed, click <strong className="text-white">Authorize</strong>, and you&apos;re back in Claude. No API keys to paste.
+                Claude pops open CreateGen in a new tab &mdash; sign in if needed, click <strong className="text-white">Authorize</strong>, and you&apos;re back in Claude. No API keys to paste.
               </p>
               <Link href="/mcp-keys" className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-white hover:bg-white/10 transition-colors">
                 Manage connections &rarr;
               </Link>
             </div>
           </div>
-          
+
           <div className="mt-12 text-sm text-slate-400">
             Already on Growth or Creator? <Link href="/mcp-keys" className="text-white hover:underline font-medium inline-flex items-center gap-1">Jump straight to your API keys &rarr;</Link>
           </div>
@@ -115,7 +115,7 @@ export default function McpLandingPage() {
 
           {/* Features Grid */}
           <div className="space-y-32">
-            
+
             {/* Feature 1: Avatar Library */}
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* Mockup */}
@@ -126,16 +126,16 @@ export default function McpLandingPage() {
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                   </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; Eromify</div>
+                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
                   <div className="w-12" />
                 </div>
-                
+
                 <div className="flex justify-end mb-6">
                   <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white">
                     List my avatars
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
                     <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
@@ -159,12 +159,12 @@ export default function McpLandingPage() {
 
               {/* Text */}
               <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">AVATAR LIBRARY</h4>
+                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">01</h4>
                 <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  TALK TO YOUR<br />AVATARS BY NAME
+                  CHAT WITH YOUR AI<br />INFLUENCERS BY NAME
                 </h3>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  Claude can list every avatar in your account &mdash; name, niche, and reference photo. Reference one by name and it generates new scenes of them with their face kept consistent. No LoRA training, no trigger words.
+                  Whether it&apos;s <strong className="text-white">Aria</strong>, <strong className="text-white">Maya</strong>, or <strong className="text-white">Luna</strong>, Claude remembers every AI influencer&apos;s identity and keeps their appearance consistent across every generation.
                 </p>
               </div>
             </div>
@@ -173,12 +173,12 @@ export default function McpLandingPage() {
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* Text (Left on Desktop) */}
               <div className="order-2 lg:order-1">
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">BULK GENERATION</h4>
+                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">02</h4>
                 <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  50 POSTS. ONE<br />PROMPT.
+                  GENERATE AN ENTIRE<br />WEEK&apos;S CONTENT IN ONE PROMPT
                 </h3>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  Tell Claude what you want, get a campaign. Vary locations, outfits, styles, aspect ratios. Same credit cost as the website &mdash; no markup, no extra fees.
+                  Create multiple photos and content variations from a single request while you focus on growing your audience.
                 </p>
               </div>
 
@@ -190,16 +190,16 @@ export default function McpLandingPage() {
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                   </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; Eromify</div>
+                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
                   <div className="w-12" />
                 </div>
-                
+
                 <div className="flex justify-end mb-6">
                   <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white max-w-[90%] leading-relaxed">
-                    Generate 12 IG-ready photos of Lily for next week &mdash; vary the outfits, moods, and lighting. Mix of indoor and outdoor. 4:5 portrait.
+                    Create 6 Instagram-ready portraits of Aria for this week. Mix different outfits, moods, and lighting with cozy café interiors and rooftop golden-hour scenes in a 4:5 portrait format.
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
                     <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
@@ -229,16 +229,16 @@ export default function McpLandingPage() {
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                   </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; Eromify</div>
+                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
                   <div className="w-12" />
                 </div>
-                
+
                 <div className="flex justify-end mb-6">
                   <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white max-w-[85%] leading-relaxed">
                     Make a 5s video of this image &mdash; slow zoom in, cinematic. Use Kling 2.5 turbo.
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
                     <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
@@ -246,15 +246,15 @@ export default function McpLandingPage() {
                   <div className="flex-1">
                     <p className="text-sm text-slate-300 mb-4 flex flex-wrap items-center gap-1.5">
                       <span>Running</span>
-                      <code className="text-[#ec4899] bg-[#ec4899]/10 px-1.5 py-0.5 rounded text-xs font-mono">kling-2.5-turbo</code> 
+                      <code className="text-[#ec4899] bg-[#ec4899]/10 px-1.5 py-0.5 rounded text-xs font-mono">kling-2.5-turbo</code>
                       <span className="text-slate-500">&middot; 5s &middot; 9:16</span>
                     </p>
-                    
+
                     <div className="relative aspect-video bg-slate-900 rounded-lg overflow-hidden border border-white/10 mb-3 group cursor-pointer">
                       <Image src="/modie/kira.png" alt="Video thumbnail" fill className="object-cover opacity-60 group-hover:opacity-50 transition-opacity" />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                          <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                         </div>
                       </div>
                       <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 rounded text-[9px] font-mono text-white">00:05</div>
@@ -266,12 +266,12 @@ export default function McpLandingPage() {
 
               {/* Text */}
               <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">IMAGE TO VIDEO</h4>
+                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">03</h4>
                 <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  BRING STILLS TO LIFE
+                  TURN PHOTOS INTO<br />CINEMATIC VIDEOS INSTANTLY
                 </h3>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  Pick any image and a motion prompt. Choose Kling, Veo, Sora, Hailuo, WAN &mdash; Claude picks the right model from cost and quality cues in your prompt.
+                  Animate any image using <strong className="text-white">Wan</strong>, <strong className="text-white">Veo</strong>, or <strong className="text-white">Seedance</strong>. Claude automatically chooses the best model and starts the video generation for you.
                 </p>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function McpLandingPage() {
                   YOUR BUDGET,<br />YOUR CONTROL
                 </h3>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  Claude can read your credit balance, plan, and daily limits before any expensive call. You stay in control of spend &mdash; and you never pay extra to drive Eromify from Claude.
+                  Claude can read your credit balance, plan, and daily limits before any expensive call. You stay in control of spend &mdash; and you never pay extra to drive CreateGen from Claude.
                 </p>
               </div>
 
@@ -297,23 +297,23 @@ export default function McpLandingPage() {
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                     <div className="w-3 h-3 rounded-full bg-white/20" />
                   </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; Eromify</div>
+                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
                   <div className="w-12" />
                 </div>
-                
+
                 <div className="flex justify-end mb-6">
                   <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white max-w-[85%] leading-relaxed">
                     How many credits do I have? Can I run 50 videos?
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
                     <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
                   </div>
                   <div className="flex-1 text-sm text-slate-300">
                     <p className="mb-4 text-slate-400 italic">Pulling your balance...</p>
-                    
+
                     <div className="grid grid-cols-3 gap-2 mb-4">
                       <div className="bg-black/40 border border-white/5 rounded-lg p-3 text-center">
                         <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Credits</div>
@@ -388,7 +388,7 @@ export default function McpLandingPage() {
                   </div>
                   <h3 className="text-xl font-bold text-white mb-4">Automate posting on a schedule</h3>
                   <p className="text-sm text-slate-400 leading-relaxed mb-8">
-                    In Cursor (or any code editor), write scripts that drive Eromify on a cron. Generate one new post per day, save to S3, post to Make.com.
+                    In Cursor (or any code editor), write scripts that drive CreateGen on a cron. Generate one new post per day, save to S3, post to Make.com.
                   </p>
                 </div>
                 <div className="mt-auto bg-black/40 rounded-xl p-5 text-xs font-mono text-slate-500 leading-relaxed">
@@ -404,10 +404,10 @@ export default function McpLandingPage() {
         <div className="max-w-4xl mx-auto px-6 pt-16 pb-32 text-center">
           <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">READY WHEN YOU ARE</h4>
           <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight mb-8">
-            YOUR INFLUENCER<br />STACK JUST LEVELED UP
+            CLAUDE MEETS<br />CREATEGEN
           </h2>
           <p className="text-xl text-slate-400 mb-12">
-            Available on Growth and Creator. Same credits. Cancel anytime.
+            Your complete AI influencer studio inside Claude. Generate realistic influencers, stunning photos, and cinematic videos with a single prompt—no switching apps, no complex workflows.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/mcp-keys" className="w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 hover:scale-105 transition-all text-lg">
