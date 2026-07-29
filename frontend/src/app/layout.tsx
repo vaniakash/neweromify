@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: BASE,
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
+  verification: {
+    google: "PLACEHOLDER_FOR_GOOGLE_SEARCH_CONSOLE_ID", // TODO: Add verification ID here
+  },
   // ── Keyword-rich title matching what Google expects for brand searches ──
   title: {
     default: "Create AI Influencers, Images & Videos",

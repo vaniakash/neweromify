@@ -1,17 +1,37 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { auth } from '@/auth';
 
-export function proxy(request: NextRequest) {
-  // Only protect /admin paths except login
-  if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login')) {
-    const session = request.cookies.get('admin_session');
+export const proxy = auth((req) => {
+  const { pathname } = req.nextUrl;
+  const isAuthenticated = !!req.auth;
+
+  // --- ADMIN PROTECTION ---
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+    const session = req.cookies.get('admin_session');
     if (!session || session.value !== 'authenticated') {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+      return NextResponse.redirect(new URL('/admin/login', req.url));
     }
   }
+
+  // --- USER PROTECTION ---
+  const protectedRoutes = ['/dashboard', '/creator', '/gallery', '/account', '/api/payment', '/api/user', '/api/generate-image'];
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+
+  if (isProtectedRoute && !isAuthenticated) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  // --- LOGIN REDIRECT ---
+  if (pathname === '/login' && isAuthenticated) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
   return NextResponse.next();
-}
+});
 
 export const config = {
-  matcher: '/admin/:path*',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|images|video|eromifylogo.png|apple-touch-icon.png|site.webmanifest|sitemap.xml|robots.txt).*)',
+  ],
 };

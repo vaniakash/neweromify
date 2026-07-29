@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:   "Professional Pack required",
-        message: "Claude MCP access is exclusive to the Professional Pack (₹499) and Enterprise Pack (₹1999). Upgrade at eromify.in/pricing.",
+        message: "Claude MCP access is exclusive to the Professional Pack (₹1,999) and Enterprise Pack (₹3,999). Upgrade at eromify.in/pricing.",
         code:    "MCP_PLAN_REQUIRED",
       },
       { status: 403 }

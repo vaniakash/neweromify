@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
       return rpcOk(id, {
         content: [{
           type: "text",
-          text: "⛔ Claude MCP access requires the Professional Pack (₹499) or Enterprise Pack (₹1999). Upgrade at https://eromify.in/pricing",
+          text: "⛔ Claude MCP access requires the Professional Pack (₹1,999) or Enterprise Pack (₹3,999). Upgrade at https://eromify.in/pricing",
         }],
         isError: true,
       });
