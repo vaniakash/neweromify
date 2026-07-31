@@ -12,6 +12,7 @@ const NAV = [
     { href: "/admin/users", icon: "group", label: "Users" },
     { href: "/admin/subscriptions", icon: "workspace_premium", label: "Subscriptions" },
     { href: "/admin/payments", icon: "payments", label: "Payments" },
+    { href: "/admin/plan-clicks", icon: "ads_click", label: "Plan Clicks" },
     { href: "/admin/messages", icon: "inbox", label: "Messages" },
   ]},
   { section: "System", items: [
@@ -25,6 +26,7 @@ const ICON_COLORS: Record<string, string> = {
   "/admin/users":        "#f472b6",
   "/admin/subscriptions":"#fbbf24",
   "/admin/payments":     "#34d399",
+  "/admin/plan-clicks":  "#fb923c",
   "/admin/messages":     "#7c6cfe",
   "/admin/settings":     "#34d399",
 };

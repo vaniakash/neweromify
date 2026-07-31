@@ -514,6 +514,14 @@ export default function PricingPage() {
   const handlePurchase = (plan: (typeof PLANS)[0]) => {
     if (!plan.available) return;
     if (status === "unauthenticated") { signIn("google"); return; }
+
+    // Fire-and-forget click tracking (never blocks the UI)
+    fetch("/api/payment/track-click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId: plan.id, planName: plan.name, amount: plan.price }),
+    }).catch(() => {/* silent */});
+
     setUpiPlan(plan);
   };
 

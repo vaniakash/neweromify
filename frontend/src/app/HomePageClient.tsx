@@ -289,7 +289,7 @@ export default function HomePage() {
                       <div className="flex gap-3 items-start">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src="/claude-color.webp" alt="Claude AI" className="w-5 h-5 object-contain" />
+                          <img src="/claude-color.webp" alt="" className="w-5 h-5 object-contain" />
                         </div>
                         <div className="flex-1 text-sm text-slate-300 leading-relaxed">
                           <p className="mb-3">

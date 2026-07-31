@@ -22,9 +22,6 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "PLACEHOLDER_FOR_GOOGLE_SEARCH_CONSOLE_ID", // TODO: Add verification ID here
-    other: {
-      "msvalidate.01": "36F5930FCEFBF2320A2A2DC74698388A", // Bing Webmaster Tools
-    },
   },
   // ── Keyword-rich title matching what Google expects for brand searches ──
   title: {
@@ -32,7 +29,7 @@ export const metadata: Metadata = {
     template: "%s | Eromify",
   },
   description:
-    "Eromify — AI Influencer Generator. Create photorealistic AI models, cinematic videos & virtual influencers in seconds. No watermarks. Start free.",
+    "Eromify is the #1 AI Influencer Generator. Create photorealistic AI models, cinematic AI videos, and consistent virtual influencers in seconds. No limits. No watermarks. Start free.",
   keywords:
     "Eromify, AI influencer generator, create AI influencer, AI model generator, virtual influencer creator, AI image generation, AI video generation, AI media platform, AI UGC generator, consistent AI character, digital avatar creator, AI content creation, Akash Rana",
   icons: {
@@ -166,19 +163,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script 
-          async 
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4692600238249678" 
-          crossOrigin="anonymous" 
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4692600238249678"
+          crossOrigin="anonymous"
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
         {/* External Scripts via next/script */}
-        <Script 
-          id="gtag-script" 
-          async 
-          src="https://www.googletagmanager.com/gtag/js?id=G-KLT8K1QBQM" 
-          strategy="afterInteractive" 
+        <Script
+          id="gtag-script"
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-KLT8K1QBQM"
+          strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
