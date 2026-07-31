@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s | Eromify",
   },
   description:
-    "Eromify is the #1 AI Influencer Generator. Create photorealistic AI models, cinematic AI videos, and consistent virtual influencers in seconds. No limits. No watermarks. Start free.",
+    "Eromify — AI Influencer Generator. Create photorealistic AI models, cinematic videos & virtual influencers in seconds. No watermarks. Start free.",
   keywords:
     "Eromify, AI influencer generator, create AI influencer, AI model generator, virtual influencer creator, AI image generation, AI video generation, AI media platform, AI UGC generator, consistent AI character, digital avatar creator, AI content creation, Akash Rana",
   icons: {
