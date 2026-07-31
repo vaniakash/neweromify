@@ -1,12 +1,30 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Script from "next/script";
-import { useSession, signIn } from "next-auth/react";
-import { Check, Lock, Zap, Crown, Star, Sparkles, Shield, ChevronDown, Flame, Layers, Video, type LucideIcon } from "lucide-react";
+// ─── Pricing Page ─────────────────────────────────────────────────────────────
+// Payment: TEMPORARY UPI flow (pending gateway approval).
+// To restore Razorpay / switch to Cashfree / PhonePe / PayU:
+//   1. Delete the UpiModal component below
+//   2. Delete handlePurchase and restore the Razorpay handlePurchase
+//   3. Re-add <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+//   4. Delete /api/payment/upi-submit/route.ts
 
-declare global {
-  interface Window { Razorpay: any; }
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSession, signIn } from "next-auth/react";
+import {
+  Check, Lock, Zap, Crown, Star, Sparkles, Shield,
+  ChevronDown, Flame, Layers, Video, Copy, CheckCheck,
+  Smartphone, Monitor, X, type LucideIcon,
+} from "lucide-react";
+import QRCode from "qrcode";
+
+/* ─── constants ──────────────────────────────────────────────────────────── */
+const UPI_ID = "akashranageu@okaxis";
+const UPI_NAME = "Eromify";
+
+function buildUpiLink(amount: number, planName: string) {
+  const tn = encodeURIComponent(planName);
+  const pn = encodeURIComponent(UPI_NAME);
+  return `upi://pay?pa=${UPI_ID}&pn=${pn}&am=${amount}&cu=INR&tn=${tn}`;
 }
 
 /* ─── plan data ─────────────────────────────────────────────────────────── */
@@ -140,6 +158,327 @@ function Counter({ value, prefix = "" }: { value: number; prefix?: string }) {
   return <>{prefix}{display}</>;
 }
 
+/* ─── UPI Modal ─────────────────────────────────────────────────────────── */
+// TEMPORARY — remove this entire component when proper payment gateway is live
+interface UpiModalProps {
+  plan: (typeof PLANS)[0];
+  onClose: () => void;
+  onSuccess: (planName: string, credits: number) => void;
+  userEmail: string;
+  userId: string;
+}
+
+function UpiModal({ plan, onClose, onSuccess, userEmail, userId }: UpiModalProps) {
+  const upiLink = buildUpiLink(plan.price, plan.name);
+
+  const [isMobile, setIsMobile] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [showUtroStep, setShowUtrStep] = useState(false);
+  const [utrValue, setUtrValue] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  // Detect mobile
+  useEffect(() => {
+    const mobile =
+      /android|iphone|ipad|ipod|windows phone/i.test(navigator.userAgent) ||
+      window.innerWidth < 768;
+    setIsMobile(mobile);
+  }, []);
+
+  // Generate QR code locally using the qrcode package
+  useEffect(() => {
+    if (isMobile) return;
+    QRCode.toDataURL(upiLink, {
+      width: 240,
+      margin: 2,
+      color: { dark: "#000000", light: "#ffffff" },
+      errorCorrectionLevel: "M",
+    }).then(setQrDataUrl).catch(console.error);
+  }, [isMobile, upiLink]);
+
+  const copyUpiId = () => {
+    navigator.clipboard.writeText(UPI_ID).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
+  };
+
+  const handleUpiPay = () => {
+    window.location.href = upiLink;
+    // Show UTR step after a short delay so user can switch back
+    setTimeout(() => setShowUtrStep(true), 1500);
+  };
+
+  const handleSubmitUtr = useCallback(async () => {
+    if (!utrValue.trim()) {
+      setSubmitError("Please enter your UTR / Transaction ID.");
+      return;
+    }
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const res = await fetch("/api/payment/upi-submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          utrId: utrValue.trim(),
+          plan: plan.id,
+          amount: plan.price,
+          userEmail,
+          userId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Submission failed.");
+      setSubmitted(true);
+      setTimeout(() => onSuccess(plan.name, plan.credits), 2500);
+    } catch (err: any) {
+      setSubmitError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [utrValue, plan, userEmail, userId, onSuccess]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="relative w-full max-w-md rounded-3xl overflow-hidden"
+        style={{
+          background: "linear-gradient(160deg,#0e0e22 0%,#131330 100%)",
+          border: `1px solid ${plan.border}`,
+          boxShadow: `0 0 0 1px ${plan.border}, 0 30px 80px ${plan.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        }}
+      >
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{ background: `linear-gradient(90deg,transparent,${plan.accent},transparent)` }} />
+
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
+          style={{ color: "rgba(255,255,255,0.5)" }}
+          aria-label="Close"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="p-7">
+          {/* Header */}
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                style={{ background: plan.iconBg }}>
+                <plan.icon className="w-4 h-4" style={{ color: plan.accent }} />
+              </div>
+              <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Pay for
+              </span>
+            </div>
+            <h2 className="text-2xl font-black text-white">{plan.name}</h2>
+            <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+              {plan.credits.toLocaleString()} credits · one-time payment
+            </p>
+          </div>
+
+          {/* Amount pill */}
+          <div className="flex items-center justify-between mb-6 px-4 py-3 rounded-2xl"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>
+              Amount to pay
+            </span>
+            <span className="text-2xl font-black text-white">₹{plan.price.toLocaleString()}</span>
+          </div>
+
+          {/* ── Success state ── */}
+          {submitted ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)" }}>
+                <CheckCheck className="w-8 h-8" style={{ color: "#34d399" }} />
+              </div>
+              <h3 className="text-xl font-black text-white mb-2">Payment Submitted!</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Your UTR has been recorded. Your subscription will be activated
+                within <strong className="text-white">1 hour</strong> after verification.
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* ── Mobile: UPI deep link ── */}
+              {isMobile ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Smartphone className="w-4 h-4" style={{ color: plan.accent }} />
+                    <span className="text-xs font-bold uppercase tracking-widest"
+                      style={{ color: "rgba(255,255,255,0.4)" }}>
+                      Mobile Payment
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleUpiPay}
+                    className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98]"
+                    style={{
+                      background: `linear-gradient(135deg,${plan.accent}cc,${plan.accent})`,
+                      boxShadow: `0 0 30px ${plan.glow}`,
+                    }}
+                  >
+                    <Smartphone className="w-5 h-5" />
+                    Pay ₹{plan.price.toLocaleString()} with UPI
+                  </button>
+                  <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    Opens Google Pay · PhonePe · Paytm · BHIM or any UPI app
+                  </p>
+
+                  {/* After tapping Pay, show UTR step */}
+                  {!showUtroStep && (
+                    <button
+                      onClick={() => setShowUtrStep(true)}
+                      className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
+                      style={{ color: "rgba(255,255,255,0.4)", border: "1px dashed rgba(255,255,255,0.12)" }}
+                    >
+                      Already paid? Enter Transaction ID →
+                    </button>
+                  )}
+                </div>
+              ) : (
+                /* ── Desktop: QR code ── */
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Monitor className="w-4 h-4" style={{ color: plan.accent }} />
+                    <span className="text-xs font-bold uppercase tracking-widest"
+                      style={{ color: "rgba(255,255,255,0.4)" }}>
+                      Scan &amp; Pay
+                    </span>
+                  </div>
+
+                  {/* QR code */}
+                  <div className="flex justify-center">
+                    <div className="p-4 rounded-2xl" style={{ background: "#fff", display: "inline-block" }}>
+                      {qrDataUrl ? (
+                        <img
+                          src={qrDataUrl}
+                          alt={`UPI QR code for ${plan.name}`}
+                          width={200}
+                          height={200}
+                          className="block"
+                        />
+                      ) : (
+                        <div className="w-[200px] h-[200px] flex items-center justify-center"
+                          style={{ color: "#888" }}>
+                          <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    Scan with Google Pay · PhonePe · Paytm · BHIM or any UPI app
+                  </p>
+
+                  {/* UPI ID row */}
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <span className="flex-1 text-sm font-mono font-bold text-white">{UPI_ID}</span>
+                    <button
+                      onClick={copyUpiId}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                      style={{
+                        background: copied ? "rgba(16,185,129,0.2)" : `rgba(255,255,255,0.08)`,
+                        color: copied ? "#34d399" : "rgba(255,255,255,0.7)",
+                        border: copied ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.12)",
+                      }}
+                    >
+                      {copied ? <CheckCheck className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {copied ? "Copied!" : "Copy UPI ID"}
+                    </button>
+                  </div>
+
+                  {/* Show UTR step on desktop */}
+                  {!showUtroStep && (
+                    <button
+                      onClick={() => setShowUtrStep(true)}
+                      className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
+                      style={{ color: "rgba(255,255,255,0.4)", border: "1px dashed rgba(255,255,255,0.12)" }}
+                    >
+                      Paid? Enter Transaction ID →
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* ── UTR Submission step (shared mobile + desktop) ── */}
+              {showUtroStep && (
+                <div className="mt-5 pt-5 space-y-3"
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                  <p className="text-sm font-bold text-white">Enter your UTR / Transaction ID</p>
+                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    Find it in your UPI app under payment history. Example: <span className="font-mono">427812345678</span>
+                  </p>
+                  <input
+                    id="utr-input"
+                    type="text"
+                    value={utrValue}
+                    onChange={(e) => setUtrValue(e.target.value)}
+                    placeholder="e.g. 427812345678"
+                    className="w-full px-4 py-3 rounded-xl text-sm font-mono text-white outline-none transition-all"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: `1px solid ${submitError ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.12)"}`,
+                    }}
+                    onFocus={(e) =>
+                      (e.target.style.border = `1px solid ${plan.accent}88`)
+                    }
+                    onBlur={(e) =>
+                      (e.target.style.border = `1px solid ${submitError ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.12)"}`)
+                    }
+                    autoFocus
+                  />
+                  {submitError && (
+                    <p className="text-xs" style={{ color: "#f87171" }}>{submitError}</p>
+                  )}
+                  <button
+                    id="ive-paid-btn"
+                    onClick={handleSubmitUtr}
+                    disabled={submitting || !utrValue.trim()}
+                    className="w-full py-3.5 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                    style={{
+                      background: `linear-gradient(135deg,${plan.accent}cc,${plan.accent})`,
+                      boxShadow: `0 0 25px ${plan.glow}`,
+                    }}
+                  >
+                    {submitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Verifying…
+                      </>
+                    ) : (
+                      <>
+                        <CheckCheck className="w-4 h-4" />
+                        I&apos;ve Paid — Submit
+                      </>
+                    )}
+                  </button>
+                  <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    ⚡ Your subscription will be activated within 1 hour after verification
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── main component ────────────────────────────────────────────────────── */
 export default function PricingPage() {
   const { data: session, status } = useSession();
@@ -147,6 +486,9 @@ export default function PricingPage() {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [visible, setVisible] = useState(false);
   const [stars, setStars] = useState<{ w: number; h: number; top: number; left: number; dur: number; delay: number }[]>([]);
+
+  // UPI modal state
+  const [upiPlan, setUpiPlan] = useState<(typeof PLANS)[0] | null>(null);
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -165,66 +507,26 @@ export default function PricingPage() {
 
   const showToast = (msg: string, ok: boolean) => {
     setToast({ msg, ok });
-    setTimeout(() => setToast(null), 4500);
+    setTimeout(() => setToast(null), 5000);
   };
 
-  const handlePurchase = async (plan: (typeof PLANS)[0]) => {
+  // ── TEMPORARY: UPI checkout — replace with gateway handler when approved ──
+  const handlePurchase = (plan: (typeof PLANS)[0]) => {
     if (!plan.available) return;
     if (status === "unauthenticated") { signIn("google"); return; }
-    setLoading(plan.id);
-    try {
-      const res = await fetch("/api/payment/create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail: session?.user?.email || "", userId: session?.user?.id || "", packId: plan.id }),
-      });
-      if (!res.ok) throw new Error();
-      const { orderId, amount, currency, keyId } = await res.json();
+    setUpiPlan(plan);
+  };
 
-      const options = {
-        key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount, currency,
-        name: "Eromify",
-        description: `${plan.name} — ${plan.credits} Credits`,
-        order_id: orderId,
-        handler: async (response: any) => {
-          try {
-            const vr = await fetch("/api/payment/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                userEmail: session?.user?.email || "",
-                userId: session?.user?.id || "",
-              }),
-            });
-            const data = await vr.json();
-            if (data.success) {
-              localStorage.setItem("eromify_pro", "true");
-              const sync = await fetch("/api/user/sync-pro").then(r => r.json()).catch(() => ({}));
-              window.dispatchEvent(new CustomEvent("eromify_credits_updated", { detail: { credits: sync.credits ?? data.creditsAdded ?? 0 } }));
-              window.dispatchEvent(new Event("eromify_pro_updated"));
-              showToast(`🎉 ${plan.credits} credits added to your account!`, true);
-            }
-          } catch { showToast("Verification failed. Contact support.", false); }
-          finally { setLoading(null); }
-        },
-        prefill: { email: session?.user?.email || "" },
-        theme: { color: plan.accent },
-        modal: { ondismiss: () => setLoading(null) },
-      };
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", () => { showToast("Payment failed. Try again.", false); setLoading(null); });
-      rzp.open();
-    } catch { showToast("Something went wrong. Try again.", false); setLoading(null); }
+  const handleUpiSuccess = (planName: string, credits: number) => {
+    setUpiPlan(null);
+    showToast(
+      `✅ Payment submitted! Your ${planName} (${credits.toLocaleString()} credits) will be activated within 1 hour.`,
+      true
+    );
   };
 
   return (
     <>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
-
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         .pricing-root *{font-family:'Inter',sans-serif}
@@ -281,6 +583,17 @@ export default function PricingPage() {
         .discount-badge{animation:discount-bounce 2s 0.8s ease-in-out infinite}
       `}</style>
 
+      {/* ── UPI Modal (TEMPORARY) ── */}
+      {upiPlan && (
+        <UpiModal
+          plan={upiPlan}
+          onClose={() => { setUpiPlan(null); setLoading(null); }}
+          onSuccess={handleUpiSuccess}
+          userEmail={session?.user?.email || ""}
+          userId={(session?.user as any)?.id || ""}
+        />
+      )}
+
       <div className="pricing-root min-h-screen w-full relative overflow-hidden" style={{ background: "linear-gradient(135deg,#060610 0%,#0a0a1c 50%,#07071a 100%)" }}>
 
         {/* ── Background mesh ── */}
@@ -290,7 +603,6 @@ export default function PricingPage() {
           <div className="absolute top-1/2 right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 65%)", filter: "blur(60px)" }} />
           {/* grid */}
           <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
-          {/* stars */}
           {/* stars — client only to avoid hydration mismatch */}
           {stars.map((s, i) => (
             <div
@@ -437,7 +749,7 @@ export default function PricingPage() {
                         </span>
                       </div>
 
-                      {/* Actual price — animated */}
+                      {/* Actual price */}
                       <div className="flex items-baseline gap-1 mb-2">
                         <span className="text-lg font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>₹</span>
                         <span
@@ -506,6 +818,7 @@ export default function PricingPage() {
 
                     {/* CTA */}
                     <button
+                      id={`plan-btn-${plan.id}`}
                       onClick={() => handlePurchase(plan)}
                       disabled={!!isLoading}
                       className="w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
@@ -518,14 +831,8 @@ export default function PricingPage() {
                         boxShadow: `0 0 25px ${plan.glow}`,
                       }}
                     >
-                      {isLoading ? (
-                        <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing…</>
-                      ) : (
-                        <>
-                          {plan.id === "value" ? <Star className="h-4 w-4" /> : plan.id === "pro" ? <Crown className="h-4 w-4" /> : plan.id === "mega" ? <Layers className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-                          Get {plan.name}
-                        </>
-                      )}
+                      {plan.id === "value" ? <Star className="h-4 w-4" /> : plan.id === "pro" ? <Crown className="h-4 w-4" /> : plan.id === "mega" ? <Layers className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                      Get {plan.name}
                     </button>
                   </div>
                 </div>
@@ -536,8 +843,8 @@ export default function PricingPage() {
           {/* ── Trust strip ── */}
           <div className={`mt-14 flex flex-wrap justify-center gap-6 transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
             {[
-              { icon: Shield, label: "Secured by Razorpay" },
-              { icon: Zap, label: "Instant delivery" },
+              { icon: Shield, label: "Secure UPI Payment" },
+              { icon: Zap, label: "Activated within 1 hour" },
               { icon: Star, label: "24-hr refund guarantee" },
               { icon: Check, label: "Credits never expire" },
             ].map(({ icon: Ic, label }) => (
@@ -548,7 +855,20 @@ export default function PricingPage() {
             ))}
           </div>
 
-          <div className={`mt-8 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+          {/* ── UPI notice banner ── */}
+          <div className={`mt-6 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+            <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg"
+              style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)", color: "#a5b4fc", boxShadow: "0 4px 20px rgba(99,102,241,0.05)" }}>
+              <span className="text-lg">⚡</span>
+              <span>
+                <strong className="text-white tracking-wide">Payment via UPI.</strong>{" "}
+                Your subscription will be automatically approved within{" "}
+                <strong className="text-white">1 hour</strong> after payment verification.
+              </span>
+            </p>
+          </div>
+
+          <div className={`mt-4 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
             <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg" style={{ background: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "#34d399", boxShadow: "0 4px 20px rgba(16,185,129,0.05)" }}>
               <span className="text-lg">💡</span>
               <span><strong className="text-white tracking-wide">Note:</strong> There is no monthly limit. These credits will last until you use all of them.</span>
@@ -564,7 +884,7 @@ export default function PricingPage() {
               </div>
               <h2 className="text-3xl font-black text-white mb-3">How We Calculate Credits</h2>
               <p className="text-sm max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
-                Simple, transparent, no hidden fees. Here's exactly how your credits are spent.
+                Simple, transparent, no hidden fees. Here&apos;s exactly how your credits are spent.
               </p>
             </div>
 
@@ -641,10 +961,11 @@ export default function PricingPage() {
             <p className="text-center text-sm mb-10" style={{ color: "rgba(255,255,255,0.35)" }}>Everything you need to know before buying.</p>
             <div className="space-y-3">
               {[
-                { q: "What are credits?", a: "Each 100 credits = 1 AI image generation, or 1,500 credits = 1 video generation. Credits are added instantly after payment." },
+                { q: "What are credits?", a: "Each 100 credits = 1 AI image generation, or 1,500 credits = 1 video generation. Credits are added within 1 hour after payment verification." },
                 { q: "Do credits expire?", a: "Never. Once purchased, your credits stay on your account forever." },
                 { q: "Can I get a refund?", a: "Yes — 24-hour no-questions-asked refund policy. Contact support within 24 hours." },
-                { q: "What payment methods work?", a: "UPI, credit/debit cards, net banking, and all major wallets via Razorpay." },
+                { q: "What payment methods work?", a: "We currently accept UPI payments (Google Pay, PhonePe, Paytm, BHIM, and all UPI apps). More payment options coming soon." },
+                { q: "How long does activation take?", a: "Your subscription is activated within 1 hour after your UTR/Transaction ID is verified by our team." },
                 { q: "Which plans include video generation?", a: "Creator Pack (₹999), Professional Pack (₹1,999), and Enterprise Pack (₹3,999) include video generation access. Each video costs 1,500 credits." },
               ].map(({ q, a }, i) => (
                 <details key={i} className="group rounded-2xl border overflow-hidden" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
