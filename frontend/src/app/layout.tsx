@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "PLACEHOLDER_FOR_GOOGLE_SEARCH_CONSOLE_ID", // TODO: Add verification ID here
+    other: {
+      "msvalidate.01": "36F5930FCEFBF2320A2A2DC74698388A", // Bing Webmaster Tools
+    },
   },
   // ── Keyword-rich title matching what Google expects for brand searches ──
   title: {
