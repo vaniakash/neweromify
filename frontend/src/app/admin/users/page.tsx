@@ -7,6 +7,7 @@ import {
   giveCreditsToUser,
   reduceCredits,
   reduceCreditsFromUser,
+  assignSubscription,
 } from "@/app/admin/actions";
 import { UserSearch } from "./UserSearch";
 import { Suspense } from "react";
@@ -118,10 +119,34 @@ export default async function AdminUsers({
   return (
     <>
       {/* ── Page Header ──────────────────────────────────────────────── */}
-      <div className="page-header">
-        <div className="page-header-eyebrow">User Management</div>
-        <h1 className="shimmer-text">All Users</h1>
-        <p>Manage accounts, credits, and subscription tiers across the platform.</p>
+      <div className="page-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div className="page-header-eyebrow">User Management</div>
+          <h1 className="shimmer-text">All Users</h1>
+          <p>Manage accounts, credits, and subscription tiers across the platform.</p>
+        </div>
+        <a
+          href="/admin/plan-clicks"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "9px 18px",
+            borderRadius: 11,
+            background: "rgba(251,146,60,0.10)",
+            border: "1px solid rgba(251,146,60,0.25)",
+            color: "#fb923c",
+            fontSize: 12,
+            fontWeight: 700,
+            textDecoration: "none",
+            flexShrink: 0,
+            marginTop: 6,
+            transition: "all 0.2s",
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>ads_click</span>
+          Plan Clicks
+        </a>
       </div>
 
       {/* ── Stat Cards ───────────────────────────────────────────────── */}
@@ -330,6 +355,202 @@ export default async function AdminUsers({
             </div>
           </form>
         </div>
+      </div>
+
+      {/* ── Assign Subscription Panel ─────────────────────────────────── */}
+      <div
+        style={{
+          ...S.card,
+          padding: 28,
+          marginBottom: 24,
+          borderColor: "rgba(251,191,36,0.20)",
+          background: "linear-gradient(135deg, rgba(25,37,64,0.95) 0%, rgba(30,20,60,0.95) 100%)",
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
+          <div
+            style={{
+              width: 44, height: 44, borderRadius: 13,
+              background: "rgba(251,191,36,0.13)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "#fbbf24", flexShrink: 0,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 22 }}>workspace_premium</span>
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.2px" }}>
+              Assign Subscription
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+              Enter user email · pick a plan · credits &amp; access are added instantly
+            </div>
+          </div>
+        </div>
+
+        <form action={assignSubscription}>
+          {/* Email row */}
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 7 }}>
+              User Email
+            </label>
+            <div style={{ position: "relative", maxWidth: 400 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: "var(--text-muted)", pointerEvents: "none" }}
+              >
+                mail
+              </span>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="user@example.com"
+                style={{
+                  width: "100%",
+                  background: "var(--bg-deep)",
+                  border: "1px solid var(--border-subtle)",
+                  borderRadius: 11,
+                  padding: "10px 14px 10px 38px",
+                  fontSize: 13,
+                  color: "var(--text-primary)",
+                  outline: "none",
+                  fontFamily: "inherit",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Plan picker */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: "block", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 10 }}>
+              Select Plan
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+              {([
+                {
+                  id: "value",
+                  name: "Beginner Pack",
+                  price: "₹499",
+                  credits: "1,500",
+                  color: "#22d3ee",
+                  icon: "bolt",
+                  perks: ["Image generation", "HD quality", "No video access"],
+                },
+                {
+                  id: "pro",
+                  name: "Creator Pack",
+                  price: "₹999",
+                  credits: "4,000",
+                  color: "#a78bfa",
+                  icon: "auto_awesome",
+                  perks: ["Image + limited video", "Face Swap", "Video Upscale"],
+                },
+                {
+                  id: "mega",
+                  name: "Professional Pack",
+                  price: "₹1,999",
+                  credits: "12,000",
+                  color: "#fbbf24",
+                  icon: "workspace_premium",
+                  perks: ["Full video access", "MCP Automation", "Priority queue"],
+                },
+                {
+                  id: "premium",
+                  name: "Enterprise Pack",
+                  price: "₹3,999",
+                  credits: "30,000",
+                  color: "#f472b6",
+                  icon: "diamond",
+                  perks: ["Everything included", "4K Video", "All models"],
+                },
+              ] as { id: string; name: string; price: string; credits: string; color: string; icon: string; perks: string[] }[]).map((plan) => (
+                <label
+                  key={plan.id}
+                  htmlFor={`plan-${plan.id}`}
+                  style={{ cursor: "pointer", display: "block" }}
+                >
+                  <input
+                    type="radio"
+                    id={`plan-${plan.id}`}
+                    name="plan"
+                    value={plan.id}
+                    required
+                    style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
+                  />
+                  <div
+                    style={{
+                      border: `1.5px solid rgba(255,255,255,0.08)`,
+                      borderRadius: 13,
+                      padding: "14px 16px",
+                      background: "var(--bg-elevated)",
+                      transition: "all 0.2s",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                    className={`plan-card plan-card-${plan.id}`}
+                  >
+                    {/* Glow accent */}
+                    <div style={{
+                      position: "absolute", top: -20, right: -20,
+                      width: 70, height: 70, borderRadius: "50%",
+                      background: plan.color, opacity: 0.10, filter: "blur(20px)", pointerEvents: "none",
+                    }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 16, color: plan.color }}
+                      >
+                        {plan.icon}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 800, color: plan.color }}>{plan.name}</span>
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text-primary)", marginBottom: 2 }}>
+                      {plan.credits}
+                      <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted)", marginLeft: 4 }}>credits</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 10 }}>{plan.price} one-time</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {plan.perks.map((p) => (
+                        <div key={p} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "var(--text-secondary)" }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 11, color: plan.color }}>check_circle</span>
+                          {p}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "11px 28px",
+              borderRadius: 11,
+              background: "linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)",
+              color: "#0a0a0a",
+              border: "none",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 4px 20px rgba(251,191,36,0.35)",
+              transition: "all 0.2s",
+              letterSpacing: "-0.1px",
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>workspace_premium</span>
+            Assign Subscription
+          </button>
+        </form>
       </div>
 
       {/* ── Toolbar: Search + Filters ─────────────────────────────────── */}

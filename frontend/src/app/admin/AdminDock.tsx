@@ -58,6 +58,15 @@ export function AdminDock() {
       onClick: () => handleNav("/admin/payments"),
     },
     {
+      label: "Plan Clicks",
+      icon: (
+        <span className="material-symbols-outlined" style={{ color: pathname.startsWith("/admin/plan-clicks") ? "#fb923c" : "var(--text-muted)", fontSize: 24 }}>
+          ads_click
+        </span>
+      ),
+      onClick: () => handleNav("/admin/plan-clicks"),
+    },
+    {
       label: "Messages",
       icon: (
         <span className="material-symbols-outlined" style={{ color: pathname.startsWith("/admin/messages") ? "#7c6cfe" : "var(--text-muted)", fontSize: 24 }}>

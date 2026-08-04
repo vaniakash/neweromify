@@ -1,5 +1,16 @@
 "use server";
 
+// ── Plan definitions (mirrors pricing page) ───────────────────────────────────
+const SUBSCRIPTION_PLANS: Record<
+  string,
+  { planName: string; credits: number; videoAccess: boolean; mcpAccess: boolean }
+> = {
+  value:   { planName: "Beginner Pack",      credits: 1500,  videoAccess: false, mcpAccess: false },
+  pro:     { planName: "Creator Pack",        credits: 4000,  videoAccess: true,  mcpAccess: false },
+  mega:    { planName: "Professional Pack",   credits: 12000, videoAccess: true,  mcpAccess: true  },
+  premium: { planName: "Enterprise Pack",     credits: 30000, videoAccess: true,  mcpAccess: true  },
+};
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -10,7 +21,7 @@ export async function loginAdmin(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
-  if (email === "akashrana49927@gmail.com" && password === "MASTER") {
+  if (email === "akashrana4992@gmail.com" && password === "MASTER") {
     const cookieStore = await cookies();
     cookieStore.set("admin_session", "authenticated", {
       httpOnly: true,
@@ -90,5 +101,32 @@ export async function reduceCreditsFromUser(userId: string, amount: number) {
   const current = (user as { credits?: number } | null)?.credits ?? 0;
   const newCredits = Math.max(current - amount, 0);
   await User.findByIdAndUpdate(userId, { $set: { credits: newCredits } });
+  revalidatePath("/admin/users");
+}
+
+// ── Assign a full subscription plan to a user by email ───────────────────────
+export async function assignSubscription(formData: FormData) {
+  const email  = (formData.get("email")  as string)?.trim().toLowerCase();
+  const planId = (formData.get("plan")   as string)?.trim();
+
+  if (!email || !planId) return;
+
+  const plan = SUBSCRIPTION_PLANS[planId];
+  if (!plan) return;
+
+  await connectDB();
+
+  await User.updateOne(
+    { email },
+    {
+      $inc: { credits: plan.credits },
+      $set: {
+        isPro: true,
+        ...(plan.videoAccess && { videoAccess: true }),
+        ...(plan.mcpAccess   && { mcpAccess:   true  }),
+      },
+    }
+  );
+
   revalidatePath("/admin/users");
 }
