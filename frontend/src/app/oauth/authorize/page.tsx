@@ -53,7 +53,7 @@ export default async function OAuthAuthorizePage({ searchParams }: Props) {
 
   // ── Not logged in → redirect to sign-in ───────────────────────────────────
   if (!session?.user) {
-    const loginUrl = `/auth/signin?callbackUrl=${encodeURIComponent(
+    const loginUrl = `/auth/login?callbackUrl=${encodeURIComponent(
       `/oauth/authorize?client_id=${client_id}&redirect_uri=${encodeURIComponent(redirect_uri)}&state=${state}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}&scope=${scope}&response_type=code`
     )}`;
     redirect(loginUrl);
