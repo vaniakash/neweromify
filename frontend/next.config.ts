@@ -51,6 +51,23 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  /**
+   * Rewrites — map OAuth/MCP paths that Claude constructs from the issuer URL
+   * to the real Next.js route handlers.
+   *
+   * Claude builds token URL as {issuer}/token instead of reading token_endpoint.
+   * Claude builds authorize URL as {issuer}/authorize instead of reading authorization_endpoint.
+   * Both are handled by rewrites here so no self-calling proxy is needed.
+   */
+  async rewrites() {
+    return [
+      // Claude calls {issuer}/token — rewrite to our real token handler
+      {
+        source: "/token",
+        destination: "/api/oauth/token",
+      },
+    ];
+  },
   async headers() {
     return [
       {
