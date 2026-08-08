@@ -55,20 +55,21 @@ function rpcError(id: string | number | null, code: number, message: string, htt
  * A plain JSON-RPC error body is NOT enough — Claude ignores it silently.
  */
 function unauthorizedResponse(id: string | number | null) {
+  const base = (process.env.NEXTAUTH_URL ?? "https://www.eromify.in").replace(/\/$/, "");
   return NextResponse.json(
-    { jsonrpc: "2.0", id, error: { code: -32001, message: "Unauthorized: missing or invalid API key. Generate a key at eromify.in/mcp-keys." } },
+    { jsonrpc: "2.0", id, error: { code: -32001, message: "Unauthorized: missing or invalid token. Generate a key at eromify.in/mcp-keys." } },
     {
       status: 401,
       headers: {
         "Content-Type":                "application/json",
         "Access-Control-Allow-Origin": "*",
-        // Simple Bearer — no resource_metadata so Claude prompts for API key
-        // instead of trying to start an OAuth flow.
-        "WWW-Authenticate": 'Bearer realm="Eromify MCP"',
+        // resource_metadata tells Claude where to find OAuth discovery docs (RFC 9728).
+        "WWW-Authenticate": `Bearer realm="Eromify MCP", error="invalid_token", resource_metadata="${base}/.well-known/oauth-protected-resource"`,
       },
     }
   );
 }
+
 
 function toUserContext(user: IUser & { _id: mongoose.Types.ObjectId }): McpUserContext {
   return {
