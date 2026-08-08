@@ -15,8 +15,8 @@
 
 export const OAUTH_CONFIG = {
   /** Displayed on the /mcp-keys page for users to copy into Claude */
-  clientId:     process.env.MCP_OAUTH_CLIENT_ID     ?? "eromify-mcp-claude",
-  clientSecret: process.env.MCP_OAUTH_CLIENT_SECRET ?? "",
+  clientId:     process.env.MCP_OAUTH_CLIENT_ID     ?? process.env.NEXT_PUBLIC_MCP_OAUTH_CLIENT_ID     ?? "eromify-mcp-claude",
+  clientSecret: process.env.MCP_OAUTH_CLIENT_SECRET ?? process.env.NEXT_PUBLIC_MCP_OAUTH_CLIENT_SECRET ?? "",
 
   /** Token lifetimes */
   codeExpirySeconds:         5 * 60,              // Authorization codes: 5 minutes

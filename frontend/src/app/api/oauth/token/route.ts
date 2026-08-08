@@ -253,13 +253,14 @@ export async function POST(request: NextRequest) {
   return errorResponse("unsupported_grant_type", "Supported grant types: authorization_code, refresh_token");
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const reqHeaders = request.headers.get("access-control-request-headers") || "*";
   return new Response(null, {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers": reqHeaders,
     },
   });
 }
