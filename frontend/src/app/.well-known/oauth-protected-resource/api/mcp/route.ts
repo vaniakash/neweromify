@@ -27,19 +27,22 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type":                "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "WWW-Authenticate",
         "Cache-Control":               "no-store",
       },
     }
   );
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request: Request) {
+  const reqHeaders = request.headers.get("access-control-request-headers") || "*";
   return new Response(null, {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": reqHeaders,
+      "Access-Control-Expose-Headers": "WWW-Authenticate",
     },
   });
 }

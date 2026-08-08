@@ -38,14 +38,24 @@ const SERVER_INFO          = { name: "eromify-mcp", version: "1.0.0" };
 function rpcOk(id: string | number | null, result: unknown) {
   return NextResponse.json(
     { jsonrpc: "2.0", id, result },
-    { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+    { headers: { 
+        "Content-Type": "application/json", 
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "WWW-Authenticate"
+      } 
+    }
   );
 }
 
 function rpcError(id: string | number | null, code: number, message: string, httpStatus = 200) {
   return NextResponse.json(
     { jsonrpc: "2.0", id, error: { code, message } },
-    { status: httpStatus, headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+    { status: httpStatus, headers: { 
+        "Content-Type": "application/json", 
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "WWW-Authenticate"
+      } 
+    }
   );
 }
 
@@ -63,6 +73,7 @@ function unauthorizedResponse(id: string | number | null) {
       headers: {
         "Content-Type":                "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "WWW-Authenticate",
         // resource_metadata tells Claude where to find OAuth discovery docs (RFC 9728).
         "WWW-Authenticate": `Bearer realm="Eromify MCP", error="invalid_token", resource_metadata="${base}/.well-known/oauth-protected-resource"`,
       },
@@ -84,13 +95,16 @@ function toUserContext(user: IUser & { _id: mongoose.Types.ObjectId }): McpUserC
 
 // ── OPTIONS — CORS preflight ──────────────────────────────────────────────────
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const reqHeaders = request.headers.get("access-control-request-headers") || "*";
   return new NextResponse(null, {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin":  "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Headers": reqHeaders,
+      "Access-Control-Expose-Headers": "WWW-Authenticate",
+      "Access-Control-Max-Age": "86400",
     },
   });
 }
@@ -109,7 +123,11 @@ export async function GET(request: NextRequest) {
       version:     "1.0.0",
       protocol:    MCP_PROTOCOL_VERSION,
     },
-    { headers: { "Access-Control-Allow-Origin": "*" } }
+    { headers: { 
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Expose-Headers": "WWW-Authenticate"
+      } 
+    }
   );
 }
 
@@ -164,6 +182,7 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type":                "application/json",
           "Access-Control-Allow-Origin": "*",
+          "Access-Control-Expose-Headers": "WWW-Authenticate, Mcp-Session-Id",
           "Mcp-Session-Id":              sessionId,
         },
       }
