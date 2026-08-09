@@ -17,11 +17,12 @@ export const metadata: Metadata = {
     canonical: BASE,
   },
   robots: {
-    index: false,
-    follow: false,
-  },
-  verification: {
-    google: "PLACEHOLDER_FOR_GOOGLE_SEARCH_CONSOLE_ID", // TODO: Add verification ID here
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
   // ── Keyword-rich title matching what Google expects for brand searches ──
   title: {
