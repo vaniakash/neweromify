@@ -6,20 +6,6 @@ export const proxy = auth((req) => {
   const { pathname } = req.nextUrl;
   const isAuthenticated = !!req.auth;
 
-  // ── GEO-BLOCK: India only ─────────────────────────────────────────────────
-  // Vercel sets x-vercel-ip-country at the edge (MaxMind GeoIP).
-  // In local dev the header is absent — we skip blocking so you can code normally.
-  // To remove geo-blocking: delete the block below and the /blocked page.
-  if (process.env.NODE_ENV === 'production' && !pathname.startsWith('/blocked')) {
-    const country = (req as NextRequest).headers.get('x-vercel-ip-country');
-    // null = unresolved IP → allow (safe default)
-    if (country && country !== 'IN') {
-      const blockedUrl = req.nextUrl.clone();
-      blockedUrl.pathname = '/blocked';
-      return NextResponse.rewrite(blockedUrl);
-    }
-  }
-
   // ── ADMIN PROTECTION ─────────────────────────────────────────────────────
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     const session = req.cookies.get('admin_session');
@@ -46,6 +32,7 @@ export const proxy = auth((req) => {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|images|video|eromifylogo.png|apple-touch-icon.png|site.webmanifest|sitemap.xml|robots.txt).*)',
+    '/((?!_next/static|_next/image|favicon.ico|images|video|eromifylogo.png|apple-touch-icon.png|site.webmanifest|sitemap.xml|robots.txt|api|.well-known).*)',
   ],
 };
+
