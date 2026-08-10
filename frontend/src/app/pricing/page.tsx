@@ -10,6 +10,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
+import { useAnalytics } from "@/lib/useAnalytics";
 import {
   Check, Lock, Zap, Crown, Star, Sparkles, Shield,
   ChevronDown, Flame, Layers, Video, Copy, CheckCheck,
@@ -38,8 +39,8 @@ const PLANS: {
   videoAccess?: boolean;
 }[] = [
     {
-      id: "value", name: "Beginner Pack", tagline: "₹499 · ~$5.99",
-      price: 499, mrp: 999, discount: 50, credits: 1500, unitPrice: "",
+      id: "value", name: "Beginner Pack", tagline: "₹149 · ~$1.79",
+      price: 149, mrp: 999, discount: 85, credits: 1500, unitPrice: "",
       accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
       iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
       icon: Star,
@@ -51,6 +52,7 @@ const PLANS: {
         "All art styles & models",
         "Commercial use",
         "Credits never expire",
+        "mcp:Claude MCP AUTOMATION",
         "NanoBanana Pro",
         "Wan 2.7 Image Pro",
         "GPT Image 2",
@@ -72,6 +74,7 @@ const PLANS: {
         "Image generation",
         "🎬 Limited video generation model",
         "Workflow Canvas",
+        "mcp:Claude MCP AUTOMATION",
         "disabled:Motion Control",
         "Face Swap",
         "Image Upscale",
@@ -305,10 +308,7 @@ function UpiModal({ plan, onClose, onSuccess, userEmail, userId }: UpiModalProps
                 <CheckCheck className="w-8 h-8" style={{ color: "#34d399" }} />
               </div>
               <h3 className="text-xl font-black text-white mb-2">Payment Submitted!</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Your UTR has been recorded. Your subscription will be activated
-                within <strong className="text-white">1 hour</strong> after verification.
-              </p>
+
             </div>
           ) : (
             <>
@@ -466,9 +466,7 @@ function UpiModal({ plan, onClose, onSuccess, userEmail, userId }: UpiModalProps
                       </>
                     )}
                   </button>
-                  <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    ⚡ Your subscription will be activated within 1 hour after verification
-                  </p>
+
                 </div>
               )}
             </>
@@ -489,6 +487,9 @@ export default function PricingPage() {
 
   // UPI modal state
   const [upiPlan, setUpiPlan] = useState<(typeof PLANS)[0] | null>(null);
+
+  // Track pricing page view for admin analytics
+  useAnalytics("pricing");
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -852,7 +853,6 @@ export default function PricingPage() {
           <div className={`mt-14 flex flex-wrap justify-center gap-6 transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
             {[
               { icon: Shield, label: "Secure UPI Payment" },
-              { icon: Zap, label: "Activated within 1 hour" },
               { icon: Star, label: "24-hr refund guarantee" },
               { icon: Check, label: "Credits never expire" },
             ].map(({ icon: Ic, label }) => (
@@ -863,18 +863,7 @@ export default function PricingPage() {
             ))}
           </div>
 
-          {/* ── UPI notice banner ── */}
-          <div className={`mt-6 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
-            <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg"
-              style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)", color: "#a5b4fc", boxShadow: "0 4px 20px rgba(99,102,241,0.05)" }}>
-              <span className="text-lg">⚡</span>
-              <span>
-                <strong className="text-white tracking-wide">Payment via UPI.</strong>{" "}
-                Your subscription will be automatically approved within{" "}
-                <strong className="text-white">1 hour</strong> after payment verification.
-              </span>
-            </p>
-          </div>
+
 
           <div className={`mt-4 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
             <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg" style={{ background: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "#34d399", boxShadow: "0 4px 20px rgba(16,185,129,0.05)" }}>
@@ -928,7 +917,7 @@ export default function PricingPage() {
                 </div>
                 <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                   {[
-                    { pack: "Beginner Pack ₹499", internal: "1,500 credits", images: "15 images", videos: "—", color: "#60a5fa" },
+                    { pack: "Beginner Pack ₹149", internal: "1,500 credits", images: "15 images", videos: "—", color: "#60a5fa" },
                     { pack: "Creator Pack ₹999", internal: "4,000 credits", images: "40 images", videos: "2 videos", color: "#c084fc" },
                     { pack: "Professional Pack ₹1,999", internal: "12,000 credits", images: "120 images", videos: "8 videos", color: "#f87171" },
                     { pack: "Enterprise Pack ₹3,999", internal: "30,000 credits", images: "300 images", videos: "20 videos", color: "#facc15" },

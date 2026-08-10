@@ -3,11 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown, Check, Shield, Copy, ExternalLink, Zap, Lock, Activity, RefreshCw } from "lucide-react";
+import { Check, Copy, ExternalLink, Zap, ChevronDown } from "lucide-react";
 
 export default function McpLandingPage() {
   const [copiedUrl, setCopiedUrl] = useState(false);
-
 
   const copyUrl = () => {
     navigator.clipboard.writeText("https://api.eromify.in/mcp");
@@ -15,409 +14,310 @@ export default function McpLandingPage() {
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
-
-
   return (
-    <div className="min-h-screen bg-[#080a0f] text-slate-200 selection:bg-pink-500/30 font-sans overflow-x-hidden relative">
-      {/* Background dot grid */}
-      <div
-        className="absolute inset-0 z-0 opacity-[0.15]"
-        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '32px 32px' }}
-      />
+    <div className="min-h-screen bg-white text-slate-800 font-sans overflow-x-hidden relative">
+      {/* Background radial glow */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-fuchsia-600/5 blur-[120px] rounded-full pointer-events-none" />
 
-
-
-      <main className="relative z-10 pt-24 pb-32">
-        {/* ── HERO ── */}
-        <div className="max-w-7xl mx-auto px-6 text-center mb-32">
-          <div className="inline-flex items-center gap-3 border border-white/10 bg-white/5 rounded-full px-4 py-1.5 text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-8">
-            MCP CONNECTOR &middot; GROWTH & CREATOR
-            <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded-full font-black tracking-normal">NEW</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[1.1] mb-8 flex flex-wrap justify-center items-center gap-x-4">
-            TURN
-            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 mx-1 shrink-0 -translate-y-1 relative">
-              <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
+      <main className="relative z-10 pt-20 pb-32 max-w-7xl mx-auto px-6">
+        
+        {/* ── HERO SECTION ── */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center mb-32 pt-12">
+          <div>
+            <div className="flex items-center gap-3 text-xs font-bold tracking-widest text-violet-600 uppercase mb-8">
+              <div className="w-6 h-[2px] bg-violet-600"></div>
+              MCP CONNECTOR
             </div>
-            CLAUDE INTO YOUR
-            <br className="hidden md:block" />
-            CREATIVE STUDIO
-          </h1>
-          <p className="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-20 leading-relaxed">
-            Connect <strong className="text-white">CreateGen</strong> with Claude to generate AI influencer portraits, cinematic videos, and weeks of content—all without leaving your chat.
-          </p>
-
-          {/* 3 Steps */}
-          <div className="grid md:grid-cols-3 gap-0 border border-white/10 rounded-3xl overflow-hidden bg-black/40 backdrop-blur-xl">
-            {/* Step 1 */}
-            <div className="p-8 text-left border-b md:border-b-0 md:border-r border-white/10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-mono text-white">1</div>
-                <h3 className="text-lg font-bold text-white">Open Claude settings</h3>
-              </div>
-              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                Launch Claude Desktop or open <span className="text-white">claude.ai</span> and go to:
-              </p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-white hover:bg-white/10 cursor-pointer transition-colors">
-                Settings &rarr; Connectors <ExternalLink className="w-3.5 h-3.5 opacity-50" />
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-8 text-left border-b md:border-b-0 md:border-r border-white/10">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-mono text-white">2</div>
-                <h3 className="text-lg font-bold text-white">Add a custom connector</h3>
-              </div>
-              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                Name it <span className="text-white">CreateGen</span> and paste the URL:
-              </p>
-              <div
-                onClick={copyUrl}
-                className="flex items-center justify-between gap-2 px-4 py-3 bg-black border border-white/10 rounded-xl text-sm font-mono text-white hover:border-white/30 cursor-pointer transition-all group"
-              >
-                <span className="truncate">https://api.eromify.in/mcp</span>
-                {copiedUrl ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-slate-500 group-hover:text-white" />}
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-8 text-left">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-mono text-white">3</div>
-                <h3 className="text-lg font-bold text-white">Click Connect, approve, done</h3>
-              </div>
-              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                Claude pops open CreateGen in a new tab &mdash; sign in if needed, click <strong className="text-white">Authorize</strong>, and you&apos;re back in Claude. No API keys to paste.
-              </p>
-              <Link href="/mcp-keys" className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-medium text-white hover:bg-white/10 transition-colors">
-                Manage connections &rarr;
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-12 text-sm text-slate-400">
-            Already on Growth or Creator? <Link href="/mcp-keys" className="text-white hover:underline font-medium inline-flex items-center gap-1">Jump straight to your API keys &rarr;</Link>
-          </div>
-        </div>
-
-        {/* ── SECTION: A COMPLETE STUDIO ── */}
-        <div className="max-w-6xl mx-auto px-6 mb-32">
-          <div className="text-center mb-24">
-            <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">A COMPLETE STUDIO</h4>
-            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight mb-6">
-              YOUR WHOLE ENGINE<br />INSIDE CLAUDE
-            </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              13 tools, one connection. Manage avatars, generate, edit, automate &mdash; all from a chat.
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
+              Run<br/>
+              Eromify<br/>
+              <span className="italic text-violet-600">inside Claude<span className="text-slate-300">.</span></span>
+            </h1>
+            <p className="text-lg text-slate-600 mb-10 max-w-lg leading-relaxed">
+              Connect your account once. Then generate AI images and videos, upload references, and check credits straight from a Claude conversation. Same credits as the app, no markup.
             </p>
+            
+            <div className="max-w-md">
+              <div 
+                onClick={copyUrl}
+                className="flex items-center justify-between gap-4 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl mb-6 cursor-pointer hover:border-slate-300 transition-all group"
+              >
+                <span className="text-sm font-mono text-slate-700 truncate">https://api.eromify.in/mcp</span>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-500 group-hover:text-slate-700 transition-colors">
+                  {copiedUrl ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  {copiedUrl ? "Copied" : "Copy"}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <Link href="https://claude.ai" target="_blank" className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold rounded-xl transition-colors">
+                  <Zap className="w-4 h-4" />
+                  Connect in Claude
+                </Link>
+                <Link href="/mcp-keys" className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-xl transition-colors border border-slate-200 hover:border-slate-300 shadow-sm">
+                  Get a key for Cursor &rarr;
+                </Link>
+              </div>
+            </div>
           </div>
 
-          {/* Features Grid */}
-          <div className="space-y-32">
-
-            {/* Feature 1: Avatar Library */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Mockup */}
-              <div className="bg-[#121212] rounded-2xl border border-white/10 shadow-2xl p-6 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                  </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
-                  <div className="w-12" />
+          {/* Chat Mockup */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/10 to-fuchsia-500/10 blur-3xl rounded-[3rem]" />
+            <div className="relative bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center gap-2 mb-8 pb-4 border-b border-slate-100">
+                <div className="flex gap-1.5 mr-4">
+                  <div className="w-3 h-3 rounded-full bg-slate-200" />
+                  <div className="w-3 h-3 rounded-full bg-slate-200" />
+                  <div className="w-3 h-3 rounded-full bg-slate-200" />
                 </div>
-
-                <div className="flex justify-end mb-6">
-                  <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white">
-                    List my avatars
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
-                    <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-300 mb-4">You have 4 avatars:</p>
-                    <div className="space-y-2">
-                      {['Lily', 'Aria', 'Noa', 'Maya'].map((name, i) => (
-                        <div key={i} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-lg p-2.5">
-                          <div className="flex items-center gap-3">
-                            <Image src={`/modie/${name.toLowerCase() === 'noa' ? 'ria' : name.toLowerCase() === 'maya' ? 'sia' : name.toLowerCase() === 'aria' ? 'kira' : 'gg'}.png`} width={24} height={24} alt={name} className="w-6 h-6 rounded-full object-cover" />
-                            <span className="text-sm text-white font-medium">{name}</span>
-                          </div>
-                          <span className="text-[9px] font-mono tracking-widest text-emerald-400 uppercase">Ready</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">Claude &middot; Eromify</span>
               </div>
 
-              {/* Text */}
-              <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">01</h4>
-                <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  CHAT WITH YOUR AI<br />INFLUENCERS BY NAME
-                </h3>
-                <p className="text-lg text-slate-400 leading-relaxed">
-                  Whether it&apos;s <strong className="text-white">Aria</strong>, <strong className="text-white">Maya</strong>, or <strong className="text-white">Luna</strong>, Claude remembers every AI influencer&apos;s identity and keeps their appearance consistent across every generation.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 2: Bulk Generation */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Text (Left on Desktop) */}
-              <div className="order-2 lg:order-1">
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">02</h4>
-                <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  GENERATE AN ENTIRE<br />WEEK&apos;S CONTENT IN ONE PROMPT
-                </h3>
-                <p className="text-lg text-slate-400 leading-relaxed">
-                  Create multiple photos and content variations from a single request while you focus on growing your audience.
-                </p>
-              </div>
-
-              {/* Mockup (Right on Desktop) */}
-              <div className="order-1 lg:order-2 bg-[#121212] rounded-2xl border border-white/10 shadow-2xl p-6 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
+              <div className="space-y-6">
+                <div className="flex justify-end">
+                  <div className="bg-violet-600 text-white text-sm px-5 py-3 rounded-2xl rounded-tr-sm inline-block shadow-sm">
+                    List my AI characters
                   </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
-                  <div className="w-12" />
                 </div>
-
-                <div className="flex justify-end mb-6">
-                  <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white max-w-[90%] leading-relaxed">
-                    Create 6 Instagram-ready portraits of Aria for this week. Mix different outfits, moods, and lighting with cozy café interiors and rooftop golden-hour scenes in a 4:5 portrait format.
+                
+                <div className="flex justify-start">
+                  <div className="bg-slate-50 text-slate-700 text-sm px-5 py-3 rounded-2xl rounded-tl-sm inline-block border border-slate-100 shadow-sm">
+                    Aria, Noa, Maya &mdash; all ready to generate.
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
-                    <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-300 mb-4">Generating 12 images...</p>
-                    <div className="grid grid-cols-4 gap-1 rounded-lg overflow-hidden mb-3">
-                      {[...Array(12)].map((_, i) => (
-                        <div key={i} className="aspect-[4/5] bg-slate-800 relative">
-                          <Image src={['/modie/gg.png', '/modie/kira.png', '/modie/ria.png', '/modie/sia.png', '/modie/sofi.png', '/modie/sturm.png'][i % 6]} alt="" fill className="object-cover opacity-80" />
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[10px] font-mono text-emerald-400 tracking-wide uppercase">✓ Done &middot; 120 credits used</p>
+                <div className="flex justify-end">
+                  <div className="bg-violet-600 text-white text-sm px-5 py-3 rounded-2xl rounded-tr-sm inline-block shadow-sm">
+                    Make 4 portraits of Aria at golden hour, 4:5
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Feature 3: Image to Video */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Mockup */}
-              <div className="bg-[#121212] rounded-2xl border border-white/10 shadow-2xl p-6 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
+                
+                <div className="flex justify-start">
+                  <div className="bg-emerald-50 text-emerald-800 text-sm px-4 py-2.5 rounded-xl border border-emerald-100 inline-flex items-center gap-2 shadow-sm">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    Done &middot; 8,000 credits used
                   </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
-                  <div className="w-12" />
-                </div>
-
-                <div className="flex justify-end mb-6">
-                  <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white max-w-[85%] leading-relaxed">
-                    Make a 5s video of this image &mdash; slow zoom in, cinematic. Use Kling 2.5 turbo.
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
-                    <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-slate-300 mb-4 flex flex-wrap items-center gap-1.5">
-                      <span>Running</span>
-                      <code className="text-[#ec4899] bg-[#ec4899]/10 px-1.5 py-0.5 rounded text-xs font-mono">kling-2.5-turbo</code>
-                      <span className="text-slate-500">&middot; 5s &middot; 9:16</span>
-                    </p>
-
-                    <div className="relative aspect-video bg-slate-900 rounded-lg overflow-hidden border border-white/10 mb-3 group cursor-pointer">
-                      <Image src="/modie/kira.png" alt="Video thumbnail" fill className="object-cover opacity-60 group-hover:opacity-50 transition-opacity" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                          <svg className="w-5 h-5 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                        </div>
-                      </div>
-                      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/80 rounded text-[9px] font-mono text-white">00:05</div>
-                    </div>
-                    <p className="text-[10px] font-mono text-emerald-400 tracking-wide uppercase">✓ 50 credits</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Text */}
-              <div>
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">03</h4>
-                <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  TURN PHOTOS INTO<br />CINEMATIC VIDEOS INSTANTLY
-                </h3>
-                <p className="text-lg text-slate-400 leading-relaxed">
-                  Animate any image using <strong className="text-white">Wan</strong>, <strong className="text-white">Veo</strong>, or <strong className="text-white">Seedance</strong>. Claude automatically chooses the best model and starts the video generation for you.
-                </p>
-              </div>
-            </div>
-
-            {/* Feature 4: Same Credits */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-              {/* Text (Left on Desktop) */}
-              <div className="order-2 lg:order-1">
-                <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">SAME CREDITS, NO MARKUP</h4>
-                <h3 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                  YOUR BUDGET,<br />YOUR CONTROL
-                </h3>
-                <p className="text-lg text-slate-400 leading-relaxed">
-                  Claude can read your credit balance, plan, and daily limits before any expensive call. You stay in control of spend &mdash; and you never pay extra to drive CreateGen from Claude.
-                </p>
-              </div>
-
-              {/* Mockup (Right on Desktop) */}
-              <div className="order-1 lg:order-2 bg-[#121212] rounded-2xl border border-white/10 shadow-2xl p-6 relative overflow-hidden">
-                <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                    <div className="w-3 h-3 rounded-full bg-white/20" />
-                  </div>
-                  <div className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">Claude &middot; CreateGen</div>
-                  <div className="w-12" />
-                </div>
-
-                <div className="flex justify-end mb-6">
-                  <div className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm text-white max-w-[85%] leading-relaxed">
-                    How many credits do I have? Can I run 50 videos?
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-transparent flex items-center justify-center shrink-0 mt-0.5 relative overflow-hidden">
-                    <Image src="/claude-color.webp" alt="Claude" fill className="object-contain" />
-                  </div>
-                  <div className="flex-1 text-sm text-slate-300">
-                    <p className="mb-4 text-slate-400 italic">Pulling your balance...</p>
-
-                    <div className="grid grid-cols-3 gap-2 mb-4">
-                      <div className="bg-black/40 border border-white/5 rounded-lg p-3 text-center">
-                        <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Credits</div>
-                        <div className="text-xl font-mono text-white">6,000</div>
-                      </div>
-                      <div className="bg-black/40 border border-white/5 rounded-lg p-3 text-center">
-                        <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Plan</div>
-                        <div className="text-sm font-bold text-white mt-1">Growth</div>
-                      </div>
-                      <div className="bg-black/40 border border-emerald-500/20 rounded-lg p-3 text-center">
-                        <div className="text-[10px] text-slate-500 uppercase font-bold mb-1">Status</div>
-                        <div className="text-sm font-bold text-emerald-400 mt-1">Active</div>
-                      </div>
-                    </div>
-
-                    <p className="leading-relaxed">
-                      50 videos at ~50 credits each = 2,500 credits. You have 6,000 &mdash; plenty of room.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* ── SECTION: WHAT YOU CAN SHIP ── */}
-        <div className="border-y border-white/5 bg-white/[0.01] py-32">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-20">
-              <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">WHAT YOU CAN SHIP</h4>
-              <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight leading-tight">
-                FROM IDEA TO CAMPAIGN<br />IN ONE CONVERSATION
-              </h2>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors flex flex-col">
-                <div>
-                  <div className="inline-block bg-white/10 rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase text-slate-300 mb-6">
-                    QUICK ASSET
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-4">Generate one asset in seconds</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed mb-8">
-                    Describe what you need and Claude picks the best model, sets parameters, and delivers the result. Images, videos, or both.
-                  </p>
-                </div>
-                <div className="mt-auto bg-black/40 rounded-xl p-5 text-xs font-mono text-slate-500 leading-relaxed">
-                  Generate a cinematic wide shot of a neon-lit Tokyo alley at night.
-                </div>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors flex flex-col">
-                <div>
-                  <div className="inline-block bg-white/10 rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase text-slate-300 mb-6">
-                    FULL CAMPAIGN
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-4">Build a campaign from a chat</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed mb-8">
-                    Pick a character, generate scenes across locations and styles with their face kept consistent, produce videos, manage everything from your generation history.
-                  </p>
-                </div>
-                <div className="mt-auto bg-black/40 rounded-xl p-5 text-xs font-mono text-slate-500 leading-relaxed">
-                  Using Lily, generate a 12-image campaign across 4 cities, then 5s videos for each.
-                </div>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-colors flex flex-col">
-                <div>
-                  <div className="inline-block bg-white/10 rounded-lg px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase text-slate-300 mb-6">
-                    CURSOR / SCRIPTS
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-4">Automate posting on a schedule</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed mb-8">
-                    In Cursor (or any code editor), write scripts that drive CreateGen on a cron. Generate one new post per day, save to S3, post to Make.com.
-                  </p>
-                </div>
-                <div className="mt-auto bg-black/40 rounded-xl p-5 text-xs font-mono text-slate-500 leading-relaxed">
-                  Write a Node script that uses my MCP key to generate one new image per day at 9am UTC.
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-24" />
 
-        {/* ── SECTION: CTA ── */}
-        <div className="max-w-4xl mx-auto px-6 pt-16 pb-32 text-center">
-          <h4 className="text-xs font-bold tracking-widest uppercase text-[#ec4899] mb-4">READY WHEN YOU ARE</h4>
-          <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight mb-8">
-            CLAUDE MEETS<br />CREATEGEN
+        {/* ── THREE STEPS ── */}
+        <div className="mb-32">
+          <div className="flex items-center gap-3 text-xs font-bold tracking-widest text-violet-600 uppercase mb-8">
+            <div className="w-6 h-[2px] bg-violet-600"></div>
+            THREE STEPS, ~30 SECONDS
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-0 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+            <div className="p-8 border-b md:border-b-0 md:border-r border-slate-200">
+              <h4 className="text-xl font-black text-slate-900 mb-4">01</h4>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Open Claude connectors</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                In Claude, go to Settings &rarr; Connectors.
+              </p>
+            </div>
+            <div className="p-8 border-b md:border-b-0 md:border-r border-slate-200">
+              <h4 className="text-xl font-black text-slate-900 mb-4">02</h4>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Add a custom connector</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Paste the Eromify server URL. No client secret needed.
+              </p>
+            </div>
+            <div className="p-8">
+              <h4 className="text-xl font-black text-slate-900 mb-4">03</h4>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Sign in & authorize</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Approve with your Eromify account. Connected &mdash; no API key to paste.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-24" />
+
+        {/* ── WHAT YOU CAN DO ── */}
+        <div className="mb-32">
+          <div className="flex items-center gap-3 text-xs font-bold tracking-widest text-violet-600 uppercase mb-10">
+            <div className="w-6 h-[2px] bg-violet-600"></div>
+            WHAT YOU CAN DO FROM CHAT
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-6">
+                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Generate images</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                GPT Image 2, Seedance 2, Nano Banana &mdash; from a sentence.
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-6">
+                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Generate videos</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Text-to-video or animate a still. Sora 2, Veo 3.1, Kling v3.
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-6">
+                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">See results inline</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Claude views each output right in the chat, no link-hopping.
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-6">
+                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Use your references</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Upload a character or product image and generate from it.
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-6">
+                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Stay in control</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Check credits, plan, and history before any spend.
+              </p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-colors shadow-sm">
+              <div className="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center mb-6">
+                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Safe by default</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                Keys hashed, revocable, rate-limited per account.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-24" />
+
+        {/* ── POWERED BY ── */}
+        <div className="mb-32">
+          <div className="flex items-center gap-3 text-xs font-bold tracking-widest text-violet-600 uppercase mb-8">
+            <div className="w-6 h-[2px] bg-violet-600"></div>
+            POWERED BY THE BEST MODELS
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3 mb-8">
+            <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">GPT Image 2</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">OpenAI</span>
+            </div>
+            <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">Seedance 2</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">ByteDance</span>
+            </div>
+            <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">Sora 2</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">OpenAI</span>
+            </div>
+            <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">Veo 3.1</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Google</span>
+            </div>
+            <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">Kling v3</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Kuaishou</span>
+            </div>
+            <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
+              <span className="font-bold text-slate-800 text-sm">Nano Banana</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Google</span>
+            </div>
+          </div>
+
+          <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
+            Claude picks the right model from your prompt. You pay the same credits as in the app &mdash; connecting through Claude never costs extra.
+          </p>
+        </div>
+
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent my-24" />
+
+        {/* ── FAQ ── */}
+        <div className="mb-32">
+          <h2 className="text-3xl font-black text-slate-900 mb-12">FAQ</h2>
+          
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">How do I connect Eromify to Claude?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                In Claude, open Settings &rarr; Connectors &rarr; Add custom connector and paste the server URL <code className="text-violet-700 bg-violet-100 px-1 rounded">https://api.eromify.in/mcp</code>. Sign in with your Eromify account and approve &mdash; no API key to paste. The whole setup takes about 30 seconds.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Does using Eromify inside Claude cost extra?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                No. You spend the same credits as in the app, and connecting through Claude never adds a markup. You can check your credit balance from the chat before generating.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Can I use it in Cursor or scripts instead of Claude?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Yes. Cursor, Claude Desktop, and custom scripts connect with a personal API key from Settings &rarr; Claude/MCP, using the same server URL as a Bearer token.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">What can I do from a Claude conversation?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Generate AI images and videos, view results inline, upload reference images, check your credit balance and plan, and browse your generation history &mdash; all without leaving the chat.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Which AI models are available?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                GPT Image 2 (OpenAI) and Seedance 2 (ByteDance) lead the lineup, with Sora 2 (OpenAI), Veo 3.1 (Google), Kling v3 (Kuaishou), and Nano Banana (Google) also available. Claude picks the right model from your prompt.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-900 mb-3">Is the connection secure?</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Yes. Connections use OAuth, API keys are hashed at rest and revocable anytime, and usage is rate-limited per account (120 requests and 20 generations per minute).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── FOOTER CTA ── */}
+        <div className="text-center py-20 bg-slate-50 border border-slate-200 rounded-3xl shadow-sm">
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight mb-4">
+            Your AI studio, one message away.
           </h2>
-          <p className="text-xl text-slate-400 mb-12">
-            Your complete AI influencer studio inside Claude. Generate realistic influencers, stunning photos, and cinematic videos with a single prompt—no switching apps, no complex workflows.
+          <p className="text-slate-600 mb-10 max-w-lg mx-auto">
+            Connect Eromify to Claude and start creating from chat.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/mcp-keys" className="w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-slate-200 hover:scale-105 transition-all text-lg">
-              Get started
+            <Link href="https://claude.ai" target="_blank" className="inline-flex items-center gap-2 px-8 py-4 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl transition-colors">
+              <Zap className="w-4 h-4" />
+              Connect in Claude
+            </Link>
+            <Link href="/" className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold rounded-xl transition-colors shadow-sm">
+              Go to dashboard &rarr;
             </Link>
           </div>
         </div>
+
       </main>
-
-
     </div>
   );
 }

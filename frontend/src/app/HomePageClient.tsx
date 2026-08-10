@@ -57,6 +57,7 @@ export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [showAIPromo, setShowAIPromo] = useState(false);
   const [isUserPro, setIsUserPro] = useState(false);
+  const [hasErosAccess, setHasErosAccess] = useState(false);
   const [mutedMap, setMutedMap] = useState<Record<number, boolean>>({});
   const toggleMute = (i: number) =>
     setMutedMap(prev => ({ ...prev, [i]: !prev[i] }));
@@ -84,8 +85,13 @@ export default function HomePage() {
 
     if (status === "unauthenticated") {
       setIsUserPro(false);
-    } else {
+      setHasErosAccess(false);
+    } else if (status === "authenticated") {
       checkPro();
+      fetch("/api/user/sync-pro")
+        .then((r) => r.json())
+        .then((data) => setHasErosAccess(data.mcpAccess === true))
+        .catch(() => setHasErosAccess(false));
     }
 
     window.addEventListener("eromify_pro_updated", checkPro);
@@ -153,8 +159,6 @@ export default function HomePage() {
                 "AI Image Generation",
                 "AI Video Creation",
                 "AI Influencer Content",
-                "Advanced AI Models",
-                "Fast • No Setup",
               ].map((f, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -192,30 +196,82 @@ export default function HomePage() {
                 </span>
               </StarBorder>
             </div>
-
           </div>
+        </section>
 
-          {/* TRUST */}
-          <div className="flex gap-10 mt-10 pt-8 border-t">
-            <div className="flex items-center gap-3">
-              <Users className="text-amber-500" />
-              <div>
-                <p className="font-bold flex items-center gap-2">
-                  <span className="tabular-nums">20+</span> ai model
-                </p>
+        {/* ── EROS PRODUCT LAUNCH SECTION ─────────────────────────────── */}
+        <section className="mb-10">
+          <Link
+            href={hasErosAccess ? "/eros" : "/pricing"}
+            onClick={() => trackEvent("cta_click", "eros_hero_card")}
+            className="block group"
+          >
+            <div className="relative rounded-2xl overflow-hidden border border-rose-500/20 hover:border-rose-500/40 transition-all duration-300"
+              style={{ background: "linear-gradient(135deg, #0f0714 0%, #130820 50%, #0a050f 100%)" }}
+            >
+              {/* Glow orbs */}
+              <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-20 -left-20 w-64 h-64 bg-rose-600/15 rounded-full blur-[80px]" />
+                <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-violet-600/15 rounded-full blur-[80px]" />
+              </div>
+
+              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 p-6 lg:p-8">
+                {/* Left */}
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/30"
+                    style={{ background: "linear-gradient(135deg, #e11d48, #7c3aed)" }}
+                  >
+                    {/* Flame icon inline SVG */}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-white font-black text-xl">Eros</span>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 uppercase tracking-wide animate-pulse">
+                        New
+                      </span>
+                    </div>
+                    <p className="text-slate-400 text-sm leading-relaxed max-w-md">
+                      The internet made you curious. We made it prettier.
+                    </p>
+
+                    {/* Feature tags */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
+                        style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.3)" }}>
+                        ⚡ Flux 2 Pro
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
+                        style={{ background: "rgba(244,63,94,0.12)", color: "#fb7185", border: "1px solid rgba(244,63,94,0.3)" }}>
+                        🎬 Motion Control Kling
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
+                        style={{ background: "rgba(234,179,8,0.12)", color: "#fbbf24", border: "1px solid rgba(234,179,8,0.3)" }}>
+                        18+
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
+                        style={{ background: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}>
+                        NSFW
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* Right CTA */}
+                <div className="shrink-0">
+                  <span className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white transition-all group-hover:scale-105"
+                    style={{ background: "linear-gradient(135deg, #e11d48, #7c3aed)", boxShadow: "0 8px 24px rgba(225,29,72,0.3)" }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                    Try Eros <span className="text-xl leading-none -my-1">🌶️</span>
+                  </span>
+                </div>
               </div>
             </div>
-
-            <div className="flex items-center gap-3">
-              <Globe className="text-blue-500" />
-              <div>
-                <p className="font-bold">Growing fast</p>
-                <p className="text-sm text-slate-500">
-                  join early users
-                </p>
-              </div>
-            </div>
-          </div>
+          </Link>
         </section>
 
         {/* CLAUDE CONNECTOR SECTION */}

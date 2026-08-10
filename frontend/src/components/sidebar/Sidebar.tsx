@@ -23,6 +23,7 @@ import {
   DollarSign,
   Video,
   ArrowUpToLine,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,14 @@ const navItems = [
     href: "/",
     icon: LayoutDashboard,
     active: true,
+  },
+  {
+    label: "Eros",
+    href: "/eros",
+    icon: Flame,
+    active: true,
+    isNew: true,
+    erosTheme: true,
   },
   {
     label: "MCP",
@@ -93,6 +102,7 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
   const router = useRouter();
   const { status } = useSession();
   const [isUserPro, setIsUserPro] = useState(false);
+  const [hasErosAccess, setHasErosAccess] = useState(false);
 
   useEffect(() => {
     const checkPro = () => {
@@ -103,8 +113,14 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
     // Initial check
     if (status === "unauthenticated") {
       setIsUserPro(false);
-    } else {
+      setHasErosAccess(false);
+    } else if (status === "authenticated") {
       checkPro();
+      // Check mcpAccess for Eros gate
+      fetch("/api/user/sync-pro")
+        .then((r) => r.json())
+        .then((data) => setHasErosAccess(data.mcpAccess === true))
+        .catch(() => setHasErosAccess(false));
     }
 
     window.addEventListener("eromify_pro_updated", checkPro);
@@ -151,27 +167,37 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={
+                (item as any).erosTheme && !hasErosAccess
+                  ? "/pricing"
+                  : item.href
+              }
               onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium",
-                (item as any).goldenTheme
-                  ? (isActive ? "bg-gradient-to-r from-amber-100 to-yellow-50 text-amber-700 font-bold border border-amber-300 shadow-sm" : "bg-gradient-to-r from-amber-50/50 to-yellow-50/50 text-amber-600 hover:from-amber-100 hover:to-yellow-50 border border-amber-200/50 hover:text-amber-700")
-                  : (isActive
-                    ? "bg-[#1736cf]/10 text-[#1736cf]"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")
+                (item as any).erosTheme
+                  ? (isActive
+                      ? "bg-gradient-to-r from-rose-500/20 to-violet-600/15 text-rose-400 font-bold border border-rose-500/30 shadow-sm"
+                      : "text-rose-400/80 hover:bg-gradient-to-r hover:from-rose-500/10 hover:to-violet-600/10 border border-transparent hover:border-rose-500/20 hover:text-rose-400")
+                  : (item as any).goldenTheme
+                    ? (isActive ? "bg-gradient-to-r from-amber-100 to-yellow-50 text-amber-700 font-bold border border-amber-300 shadow-sm" : "bg-gradient-to-r from-amber-50/50 to-yellow-50/50 text-amber-600 hover:from-amber-100 hover:to-yellow-50 border border-amber-200/50 hover:text-amber-700")
+                    : (isActive
+                      ? "bg-[#1736cf]/10 text-[#1736cf]"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900")
               )}
             >
               <Icon
                 className={cn(
                   "h-4 w-4",
-                  (item as any).goldenTheme
-                    ? (isActive ? "text-amber-600" : "text-amber-500")
-                    : (isActive ? "text-[#1736cf]" : "text-slate-400")
+                  (item as any).erosTheme
+                    ? (isActive ? "text-rose-500" : "text-rose-400/70")
+                    : (item as any).goldenTheme
+                      ? (isActive ? "text-amber-600" : "text-amber-500")
+                      : (isActive ? "text-[#1736cf]" : "text-slate-400")
                 )}
               />
               <span className="flex-1">{item.label}</span>
-              {(item as any).isNew && (
+              {(item as any).isNew && !((item as any).erosTheme && !hasErosAccess) && (
                 <span
                   className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide animate-pulse shrink-0"
                   style={{
@@ -181,6 +207,18 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
                   }}
                 >
                   New
+                </span>
+              )}
+              {(item as any).erosTheme && !hasErosAccess && (
+                <span
+                  className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0"
+                  style={{
+                    background: "rgba(244,63,94,0.12)",
+                    color: "#fb7185",
+                    border: "1px solid rgba(244,63,94,0.3)",
+                  }}
+                >
+                  PRO
                 </span>
               )}
               {(item as any).isUpcoming && (

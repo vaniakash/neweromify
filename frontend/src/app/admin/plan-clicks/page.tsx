@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { PlanClick, IPlanClick } from "@/models/PlanClick";
+import { AnalyticsEvent, IAnalyticsEvent } from "@/models/AnalyticsEvent";
 import { formatDistanceToNow, format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -14,12 +15,32 @@ const PLAN_COLORS: Record<string, { color: string; bg: string; border: string }>
 export default async function PlanClicksPage() {
   await connectDB();
 
+  // ── Plan clicks ────────────────────────────────────────────────────────────
   const clicks = (await PlanClick.find()
     .sort({ createdAt: -1 })
     .limit(200)
     .lean()) as IPlanClick[];
 
-  // ── Aggregation per plan ──────────────────────────────────────────────────
+  // ── Pricing page visits ────────────────────────────────────────────────────
+  const pricingVisits = (await AnalyticsEvent.find({ event: "page_view", page: "pricing" })
+    .sort({ createdAt: -1 })
+    .limit(500)
+    .lean()) as IAnalyticsEvent[];
+
+  const totalVisits = pricingVisits.length;
+  const uniqueVisitorIPs = new Set(pricingVisits.filter((v) => v.ip).map((v) => v.ip)).size;
+  const now = new Date();
+  const todayVisits = pricingVisits.filter((v) => {
+    if (!v.createdAt) return false;
+    const d = new Date(v.createdAt);
+    return (
+      d.getDate() === now.getDate() &&
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear()
+    );
+  }).length;
+
+  // ── Plan click aggregation ─────────────────────────────────────────────────
   const planAgg: Record<string, { name: string; count: number; amount: number }> = {};
   for (const c of clicks) {
     if (!planAgg[c.planId]) {
@@ -41,30 +62,103 @@ export default async function PlanClicksPage() {
         <p>Who clicked which plan and when · {totalClicks} total clicks</p>
       </div>
 
-      {/* ── KPI row ── */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          PRICING PAGE VISITS
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="table-card" style={{ marginBottom: 24 }}>
+        <div className="table-card-header">
+          <span className="table-card-title">🔍 Pricing Page Visits</span>
+          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            Tracks every visit to /pricing · last 500 events
+          </span>
+        </div>
+
+        {/* KPI mini-row */}
+        <div style={{
+          padding: "16px 24px",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 16,
+          borderBottom: "1px solid var(--border)",
+        }}>
+          {[
+            { label: "Total Visits", value: totalVisits,       icon: "visibility",  color: "#818cf8", footer: "All /pricing page views" },
+            { label: "Today's Visits", value: todayVisits,     icon: "today",       color: "#34d399", footer: "Page views today" },
+            { label: "Unique IPs",  value: uniqueVisitorIPs,   icon: "person_pin",  color: "#f472b6", footer: "Distinct visitor IPs" },
+          ].map((k) => (
+            <div key={k.label} className="kpi-card" style={{ padding: "18px 20px" }}>
+              <div className="kpi-icon-wrap" style={{ background: `${k.color}1a`, color: k.color }}>
+                <span className="material-symbols-outlined">{k.icon}</span>
+              </div>
+              <div className="kpi-label">{k.label}</div>
+              <div className="kpi-value">{k.value}</div>
+              <div className="kpi-footer" style={{ marginTop: 8 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>info</span>
+                {k.footer}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Visitor log table */}
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>IP Address</th>
+              <th>Device</th>
+              <th>Browser</th>
+              <th>Time Ago</th>
+              <th>Exact Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pricingVisits.length === 0 ? (
+              <tr>
+                <td colSpan={6} style={{ textAlign: "center", padding: "40px 0", color: "var(--text-muted)" }}>
+                  No visits recorded yet. They will appear here after the first /pricing load.
+                </td>
+              </tr>
+            ) : (
+              pricingVisits.slice(0, 100).map((v, i) => {
+                const ua = v.userAgent ?? "";
+                const device = /mobile|android|iphone|ipad/i.test(ua) ? "📱 Mobile" : "🖥️ Desktop";
+                const browser = /edg/i.test(ua) ? "Edge"
+                  : /opr|opera/i.test(ua) ? "Opera"
+                  : /chrome/i.test(ua) ? "Chrome"
+                  : /firefox/i.test(ua) ? "Firefox"
+                  : /safari/i.test(ua) ? "Safari"
+                  : "Other";
+                return (
+                  <tr key={String(v._id ?? i)}>
+                    <td style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>{i + 1}</td>
+                    <td style={{ fontSize: 12, fontFamily: "monospace", color: "var(--text-secondary)" }}>
+                      {v.ip || "—"}
+                    </td>
+                    <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{device}</td>
+                    <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{browser}</td>
+                    <td suppressHydrationWarning style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                      {v.createdAt ? formatDistanceToNow(new Date(v.createdAt), { addSuffix: true }) : "—"}
+                    </td>
+                    <td suppressHydrationWarning style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "monospace", whiteSpace: "nowrap" }}>
+                      {v.createdAt ? format(new Date(v.createdAt), "dd MMM yyyy, hh:mm:ss a") : "—"}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          PLAN CLICK KPIs
+      ══════════════════════════════════════════════════════════════════════ */}
       <div className="kpi-grid" style={{ marginBottom: 24 }}>
         {[
-          {
-            label: "Total Clicks",
-            value: totalClicks,
-            footer: "All plan button clicks",
-            color: "#7c6cfe",
-            icon: "ads_click",
-          },
-          {
-            label: "Logged-in Users",
-            value: uniqueUsers,
-            footer: "Unique signed-in users",
-            color: "#34d399",
-            icon: "person",
-          },
-          {
-            label: "Guest Clicks",
-            value: guestClicks,
-            footer: "Clicked without signing in",
-            color: "#fbbf24",
-            icon: "person_off",
-          },
+          { label: "Total Clicks",   value: totalClicks,  footer: "All plan button clicks",    color: "#7c6cfe", icon: "ads_click" },
+          { label: "Logged-in Users", value: uniqueUsers, footer: "Unique signed-in users",    color: "#34d399", icon: "person" },
+          { label: "Guest Clicks",   value: guestClicks,  footer: "Clicked without signing in",color: "#fbbf24", icon: "person_off" },
           {
             label: "Most Wanted",
             value: planStats[0]?.[1].name ?? "—",
@@ -126,7 +220,6 @@ export default async function PlanClicksPage() {
                       </span>
                     </div>
                   </div>
-                  {/* Progress bar */}
                   <div style={{ height: 8, borderRadius: 6, background: "var(--bg-deep)", overflow: "hidden" }}>
                     <div style={{
                       height: "100%", borderRadius: 6,
@@ -143,7 +236,7 @@ export default async function PlanClicksPage() {
         </div>
       </div>
 
-      {/* ── All clicks table ── */}
+      {/* ── All click events table ── */}
       <div className="table-card">
         <div className="table-card-header">
           <span className="table-card-title">All Click Events</span>
@@ -174,12 +267,7 @@ export default async function PlanClicksPage() {
                 const isGuest = !c.userEmail;
                 return (
                   <tr key={String(c._id ?? i)}>
-                    {/* Row number */}
-                    <td style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>
-                      {i + 1}
-                    </td>
-
-                    {/* Email */}
+                    <td style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>{i + 1}</td>
                     <td style={{ fontSize: 12, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {isGuest ? (
                         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(251,191,36,0.1)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.2)" }}>
@@ -189,13 +277,7 @@ export default async function PlanClicksPage() {
                         <span style={{ color: "var(--text-secondary)" }}>{c.userEmail}</span>
                       )}
                     </td>
-
-                    {/* Name */}
-                    <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                      {c.userName || "—"}
-                    </td>
-
-                    {/* Plan badge */}
+                    <td style={{ fontSize: 12, color: "var(--text-muted)" }}>{c.userName || "—"}</td>
                     <td>
                       <span style={{
                         fontSize: 10, fontWeight: 800, padding: "2px 10px", borderRadius: 999,
@@ -205,24 +287,14 @@ export default async function PlanClicksPage() {
                         {c.planName}
                       </span>
                     </td>
-
-                    {/* Amount */}
                     <td style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 14 }}>
                       ₹{c.amount.toLocaleString("en-IN")}
                     </td>
-
-                    {/* Relative time */}
                     <td suppressHydrationWarning style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                      {c.createdAt
-                        ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true })
-                        : "N/A"}
+                      {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "N/A"}
                     </td>
-
-                    {/* Exact timestamp */}
                     <td suppressHydrationWarning style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "monospace", whiteSpace: "nowrap" }}>
-                      {c.createdAt
-                        ? format(new Date(c.createdAt), "dd MMM yyyy, hh:mm:ss a")
-                        : "—"}
+                      {c.createdAt ? format(new Date(c.createdAt), "dd MMM yyyy, hh:mm:ss a") : "—"}
                     </td>
                   </tr>
                 );
