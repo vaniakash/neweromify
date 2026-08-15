@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import {
   X, Zap, Check, Shield, Sparkles, Star, Flame, Layers, Video,
-  Copy, CheckCheck, Smartphone, Monitor,
   type LucideIcon,
 } from "lucide-react";
 import { useSession, signIn } from "next-auth/react";
@@ -16,23 +15,12 @@ interface ImageGenPayModalProps {
   mode: "login" | "payment";
 }
 
-/* ─── UPI constants ──────────────────────────────────────────────────────── */
-const UPI_ID = "akashranageu@okaxis";
-const UPI_NAME = "Eromify";
-
-function buildUpiLink(amount: number, planName: string) {
-  const tn = encodeURIComponent(planName);
-  const pn = encodeURIComponent(UPI_NAME);
-  return `upi://pay?pa=${UPI_ID}&pn=${pn}&am=${amount}&cu=INR&tn=${tn}`;
-}
-
 interface Pack {
   id: string;
   name: string;
   tag: string;
   price: number;
   credits: number;
-  unitPrice: string;
   accent: string;
   glow: string;
   border: string;
@@ -44,305 +32,93 @@ interface Pack {
 
 const PACKS: Pack[] = [
   {
-    id: "value", name: "Beginner", tag: "₹149 · ~\$1.79",
-    price: 149, credits: 1500, unitPrice: "",
+    id: "value", name: "Beginner", tag: "₹149 · ~$1.79",
+    price: 149, credits: 1500,
     accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
     iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
     icon: Star,
   },
   {
     id: "pro", name: "Creator", tag: "₹999 · ~\$11.99",
-    price: 999, credits: 4000, unitPrice: "",
+    price: 999, credits: 4000,
     accent: "#a855f7", glow: "rgba(168,85,247,0.28)", border: "rgba(168,85,247,0.45)",
     iconBg: "linear-gradient(135deg,#4c1d95,#6d28d9)",
     icon: Flame, popular: true, videoAccess: true,
   },
   {
     id: "mega", name: "Professional", tag: "₹1999 · ~\$23.99",
-    price: 1999, credits: 12000, unitPrice: "",
+    price: 1999, credits: 12000,
     accent: "#f43f5e", glow: "rgba(244,63,94,0.25)", border: "rgba(244,63,94,0.45)",
     iconBg: "linear-gradient(135deg,#881337,#be123c)",
     icon: Layers, videoAccess: true,
   },
   {
     id: "premium", name: "Enterprise", tag: "₹3999 · ~\$47.99",
-    price: 3999, credits: 30000, unitPrice: "",
+    price: 3999, credits: 30000,
     accent: "#eab308", glow: "rgba(234,179,8,0.28)", border: "rgba(234,179,8,0.45)",
     iconBg: "linear-gradient(135deg,#854d0e,#a16207)",
     icon: Sparkles, videoAccess: true,
   },
 ];
 
-/* ─── UPI Payment Step ───────────────────────────────────────────────────── */
-interface UpiStepProps {
-  pack: Pack;
-  userEmail: string;
-  userId: string;
-  onSuccess: (creditsAdded?: number) => void;
-}
-
-function UpiStep({ pack, userEmail, userId, onSuccess }: UpiStepProps) {
-  const upiLink = buildUpiLink(pack.price, pack.name + " Pack");
-  const [isMobile, setIsMobile] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState("");
-  const [showUtrStep, setShowUtrStep] = useState(false);
-  const [utrValue, setUtrValue] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    const mobile =
-      /android|iphone|ipad|ipod|windows phone/i.test(navigator.userAgent) ||
-      window.innerWidth < 768;
-    setIsMobile(mobile);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) return;
-    import("qrcode").then((QRCode) => {
-      QRCode.toDataURL(upiLink, {
-        width: 200,
-        margin: 2,
-        color: { dark: "#000000", light: "#ffffff" },
-        errorCorrectionLevel: "M",
-      }).then(setQrDataUrl).catch(console.error);
-    });
-  }, [isMobile, upiLink]);
-
-  const copyUpiId = () => {
-    navigator.clipboard.writeText(UPI_ID).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
-  };
-
-  const handleUpiPay = () => {
-    window.location.href = upiLink;
-    setTimeout(() => setShowUtrStep(true), 1500);
-  };
-
-  const handleSubmitUtr = useCallback(async () => {
-    if (!utrValue.trim()) {
-      setSubmitError("Please enter your UTR / Transaction ID.");
-      return;
-    }
-    setSubmitting(true);
-    setSubmitError("");
-    try {
-      const res = await fetch("/api/payment/upi-submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          utrId: utrValue.trim(),
-          plan: pack.id,
-          amount: pack.price,
-          userEmail,
-          userId,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Submission failed.");
-      setSubmitted(true);
-      try {
-        const proRes = await fetch("/api/user/sync-pro");
-        const proData = await proRes.json();
-        if (proData.isPro) localStorage.setItem("eromify_pro", "true");
-        else localStorage.removeItem("eromify_pro");
-        window.dispatchEvent(new CustomEvent("eromify_credits_updated", {
-          detail: { credits: proData.credits ?? data.creditsAdded ?? 0 },
-        }));
-      } catch { localStorage.setItem("eromify_pro", "true"); }
-      window.dispatchEvent(new Event("eromify_pro_updated"));
-      setTimeout(() => onSuccess(data.creditsAdded ?? pack.credits), 2500);
-    } catch (err: any) {
-      setSubmitError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [utrValue, pack, userEmail, userId, onSuccess]);
-
-  if (submitted) {
-    return (
-      <div className="text-center py-6">
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)" }}
-        >
-          <CheckCheck className="w-8 h-8" style={{ color: "#34d399" }} />
-        </div>
-        <h3 className="text-xl font-black text-white mb-2">Payment Submitted!</h3>
-        <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
-          Your UTR has been recorded. Your credits will be activated within{" "}
-          <strong className="text-white">1 hour</strong> after verification.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {/* Amount pill */}
-      <div
-        className="flex items-center justify-between mb-5 px-4 py-3 rounded-2xl"
-        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-      >
-        <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>
-          Amount to pay
-        </span>
-        <span className="text-2xl font-black text-white">₹{pack.price.toLocaleString()}</span>
-      </div>
-
-      {isMobile ? (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Smartphone className="w-4 h-4" style={{ color: pack.accent }} />
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Mobile Payment
-            </span>
-          </div>
-          <button
-            onClick={handleUpiPay}
-            className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              background: `linear-gradient(135deg,${pack.accent}cc,${pack.accent})`,
-              boxShadow: `0 0 30px ${pack.glow}`,
-            }}
-          >
-            <Smartphone className="w-5 h-5" />
-            Pay ₹{pack.price.toLocaleString()} with UPI
-          </button>
-          <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
-            Opens Google Pay · PhonePe · Paytm · BHIM or any UPI app
-          </p>
-          {!showUtrStep && (
-            <button
-              onClick={() => setShowUtrStep(true)}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
-              style={{ color: "rgba(255,255,255,0.4)", border: "1px dashed rgba(255,255,255,0.12)" }}
-            >
-              Already paid? Enter Transaction ID →
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Monitor className="w-4 h-4" style={{ color: pack.accent }} />
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.4)" }}>
-              Scan &amp; Pay
-            </span>
-          </div>
-          <div className="flex justify-center">
-            <div className="p-4 rounded-2xl" style={{ background: "#fff", display: "inline-block" }}>
-              {qrDataUrl ? (
-                <img src={qrDataUrl} alt={`UPI QR for ${pack.name}`} width={200} height={200} className="block" />
-              ) : (
-                <div className="w-[200px] h-[200px] flex items-center justify-center" style={{ color: "#888" }}>
-                  <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-          </div>
-          <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
-            Scan with Google Pay · PhonePe · Paytm · BHIM or any UPI app
-          </p>
-          <div
-            className="flex items-center gap-2 px-4 py-3 rounded-xl"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
-          >
-            <span className="flex-1 text-sm font-mono font-bold text-white">{UPI_ID}</span>
-            <button
-              onClick={copyUpiId}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
-              style={{
-                background: copied ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.08)",
-                color: copied ? "#34d399" : "rgba(255,255,255,0.7)",
-                border: copied ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.12)",
-              }}
-            >
-              {copied ? <CheckCheck className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-              {copied ? "Copied!" : "Copy UPI ID"}
-            </button>
-          </div>
-          {!showUtrStep && (
-            <button
-              onClick={() => setShowUtrStep(true)}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
-              style={{ color: "rgba(255,255,255,0.4)", border: "1px dashed rgba(255,255,255,0.12)" }}
-            >
-              Paid? Enter Transaction ID →
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* UTR submission */}
-      {showUtrStep && (
-        <div className="mt-5 pt-5 space-y-3" style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-sm font-bold text-white">Enter your UTR / Transaction ID</p>
-          <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-            Find it in your UPI app under payment history. Example:{" "}
-            <span className="font-mono">427812345678</span>
-          </p>
-          <input
-            type="text"
-            value={utrValue}
-            onChange={(e) => setUtrValue(e.target.value)}
-            placeholder="e.g. 427812345678"
-            className="w-full px-4 py-3 rounded-xl text-sm font-mono text-white outline-none transition-all"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: `1px solid ${submitError ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.12)"}`,
-            }}
-            onFocus={(e) => (e.target.style.border = `1px solid ${pack.accent}88`)}
-            onBlur={(e) => (e.target.style.border = `1px solid ${submitError ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.12)"}`)}
-            autoFocus
-          />
-          {submitError && <p className="text-xs" style={{ color: "#f87171" }}>{submitError}</p>}
-          <button
-            onClick={handleSubmitUtr}
-            disabled={submitting || !utrValue.trim()}
-            className="w-full py-3.5 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-            style={{
-              background: `linear-gradient(135deg,${pack.accent}cc,${pack.accent})`,
-              boxShadow: `0 0 25px ${pack.glow}`,
-            }}
-          >
-            {submitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Verifying…
-              </>
-            ) : (
-              <>
-                <CheckCheck className="w-4 h-4" />
-                I&apos;ve Paid — Submit
-              </>
-            )}
-          </button>
-          <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
-            ⚡ Your credits will be activated within 1 hour after verification
-          </p>
-        </div>
-      )}
-    </>
-  );
+// ── PayU form POST helper ─────────────────────────────────────────────────────
+function submitToPayU(fields: Record<string, string>, payuUrl: string) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = payuUrl;
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
 }
 
 /* ─── Main Modal ─────────────────────────────────────────────────────────── */
 export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenPayModalProps) {
   const [selectedPackId, setSelectedPackId] = useState("value");
-  const [showPayStep, setShowPayStep] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
 
   if (!isOpen) return null;
 
   const selectedPack = PACKS.find((p) => p.id === selectedPackId)!;
   const handleLogin = () => signIn("google", { callbackUrl: "/tools/creator/image-generator" });
+  const handleClose = () => { onClose(); };
 
-  const handleClose = () => { onClose(); setShowPayStep(false); };
+  const handlePayNow = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          packId: selectedPackId,
+          userEmail: session?.user?.email ?? "",
+          userId: (session?.user as { id?: string })?.id ?? "",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to create payment order");
+
+      const {
+        key, txnid, amount, productinfo, firstname, email,
+        surl, furl, hash, payuUrl,
+      } = await res.json();
+
+      // Redirect to PayU checkout
+      submitToPayU({ key, txnid, amount, productinfo, firstname, email, surl, furl, hash }, payuUrl);
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
+    }
+  };
 
   const content = (
     <>
@@ -420,16 +196,6 @@ export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenP
                     Sign in with Google to generate stunning AI images.
                   </p>
                 </>
-              ) : showPayStep ? (
-                <>
-                  <h2 className="text-2xl font-black text-white text-center leading-tight">Pay for</h2>
-                  <p className="text-sm text-center mt-1 font-bold" style={{ color: selectedPack.accent }}>
-                    {selectedPack.name} Pack
-                  </p>
-                  <p className="text-xs text-center mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>
-                    {selectedPack.credits.toLocaleString()} credits · one-time payment
-                  </p>
-                </>
               ) : (
                 <>
                   <h2 className="text-2xl font-black text-white text-center leading-tight">Get More Credits</h2>
@@ -441,7 +207,7 @@ export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenP
             </div>
 
             {/* Pack selection */}
-            {mode === "payment" && !showPayStep && (
+            {mode === "payment" && (
               <div className="space-y-2.5 mb-5">
                 {PACKS.map((pack) => {
                   const isSelected = selectedPackId === pack.id;
@@ -495,7 +261,7 @@ export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenP
                           <span className="font-bold"
                             style={{ color: isSelected ? pack.accent : "rgba(255,255,255,0.4)" }}>
                             {pack.credits.toLocaleString()}
-                          </span> credits
+                          </span>{" "}credits
                         </p>
                         {pack.videoAccess && (
                           <div className="flex items-center gap-1 mt-1.5">
@@ -526,7 +292,7 @@ export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenP
             )}
 
             {/* Refund badge */}
-            {mode === "payment" && !showPayStep && (
+            {mode === "payment" && (
               <div
                 className="flex items-center gap-2.5 px-4 py-3 rounded-2xl mb-5"
                 style={{ background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)" }}
@@ -541,14 +307,14 @@ export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenP
               </div>
             )}
 
-            {/* UPI Payment step */}
-            {mode === "payment" && showPayStep && (
-              <UpiStep
-                pack={selectedPack}
-                userEmail={session?.user?.email || ""}
-                userId={(session?.user as any)?.id || ""}
-                onSuccess={(credits) => { onSuccess(credits); setShowPayStep(false); }}
-              />
+            {/* Error */}
+            {error && (
+              <div
+                className="mb-4 p-3 rounded-xl text-sm text-center"
+                style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}
+              >
+                {error}
+              </div>
             )}
 
             {/* CTA */}
@@ -566,25 +332,37 @@ export function ImageGenPayModal({ isOpen, onClose, onSuccess, mode }: ImageGenP
                 </svg>
                 Continue with Google
               </button>
-            ) : !showPayStep ? (
+            ) : (
               <button
-                onClick={() => setShowPayStep(true)}
-                className="cta-btn w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2.5"
+                onClick={handlePayNow}
+                disabled={loading}
+                className="cta-btn w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2.5 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
-                  background: `linear-gradient(135deg,${selectedPack.id === "value" ? "#1d4ed8,#3b82f6" : selectedPack.id === "pro" ? "#7c3aed,#a855f7" : selectedPack.id === "mega" ? "#be123c,#f43f5e" : "#a16207,#ca8a04"})`,
-                  boxShadow: `0 0 30px ${selectedPack.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
+                  background: loading
+                    ? "linear-gradient(135deg,#374151,#1f2937)"
+                    : `linear-gradient(135deg,${selectedPack.id === "value" ? "#1d4ed8,#3b82f6" : selectedPack.id === "pro" ? "#7c3aed,#a855f7" : selectedPack.id === "mega" ? "#be123c,#f43f5e" : "#a16207,#ca8a04"})`,
+                  boxShadow: loading ? "none" : `0 0 30px ${selectedPack.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
                 }}
               >
-                <Zap className="h-4 w-4" />
-                Pay ₹{selectedPack.price} &amp; Get {selectedPack.credits.toLocaleString()} Credits
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Redirecting to PayU…
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4" />
+                    Pay ₹{selectedPack.price} &amp; Get {selectedPack.credits.toLocaleString()} Credits
+                  </>
+                )}
               </button>
-            ) : null}
+            )}
 
-            {!showPayStep && (
+            {mode === "payment" && (
               <p className="text-center text-[10px] mt-3 flex items-center justify-center gap-1"
                 style={{ color: "rgba(255,255,255,0.2)" }}>
                 <Shield className="h-3 w-3" />
-                Secured · UPI · Google Pay · PhonePe · Paytm
+                Secured by PayU · UPI · Cards · Net Banking
               </p>
             )}
           </div>

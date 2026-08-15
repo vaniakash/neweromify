@@ -13,6 +13,7 @@ export async function GET() {
     return NextResponse.json({
       isPro: !!user?.isPro,
       credits: typeof user?.credits === "number" ? user.credits : 0,
+      mcpAccess: !!user?.mcpAccess,
     });
   } catch (error) {
     console.error("Pro sync error:", error);

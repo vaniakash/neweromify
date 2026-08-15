@@ -1,7 +1,12 @@
 import { loginAdmin } from "../actions";
 import { Mail, Lock, ArrowRight, Shield } from "lucide-react";
 
-export default function AdminLogin() {
+export default function AdminLogin({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  // Next.js 15 – searchParams is a Promise in server components
   return (
     <div style={{
       minHeight: "100vh",
@@ -58,6 +63,9 @@ export default function AdminLogin() {
             Sign in to access the control panel
           </p>
         </div>
+
+        {/* Error banner — shown when ?error=1 */}
+        <ErrorBanner searchParams={searchParams} />
 
         {/* Form */}
         <form action={loginAdmin} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -147,6 +155,26 @@ export default function AdminLogin() {
           </button>
         </form>
       </div>
+    </div>
+  );
+}
+
+// Async server component to read searchParams
+async function ErrorBanner({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const params = await searchParams;
+  if (!params?.error) return null;
+  return (
+    <div style={{
+      background: "rgba(239,68,68,0.12)",
+      border: "1px solid rgba(239,68,68,0.35)",
+      borderRadius: "10px",
+      padding: "12px 16px",
+      marginBottom: "20px",
+      color: "#fca5a5",
+      fontSize: "13px",
+      textAlign: "center",
+    }}>
+      ❌ Invalid email or security key. Please try again.
     </div>
   );
 }

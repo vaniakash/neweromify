@@ -1,32 +1,19 @@
 "use client";
 
 // ─── Pricing Page ─────────────────────────────────────────────────────────────
-// Payment: TEMPORARY UPI flow (pending gateway approval).
-// To restore Razorpay / switch to Cashfree / PhonePe / PayU:
-//   1. Delete the UpiModal component below
-//   2. Delete handlePurchase and restore the Razorpay handlePurchase
-//   3. Re-add <Script src="https://checkout.razorpay.com/v1/checkout.js" />
-//   4. Delete /api/payment/upi-submit/route.ts
+// Payment: PayU gateway via hidden form POST.
+// To restore Razorpay / switch to Cashfree / PhonePe:
+//   1. Delete the PayU logic below if needed
+//   2. Delete handlePurchase and restore the specific gateway handlePurchase
+//   3. Delete /api/payment/create-order/route.ts if obsolete
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useAnalytics } from "@/lib/useAnalytics";
 import {
   Check, Lock, Zap, Crown, Star, Sparkles, Shield,
-  ChevronDown, Flame, Layers, Video, Copy, CheckCheck,
-  Smartphone, Monitor, X, type LucideIcon,
+  ChevronDown, Flame, Layers, Video, type LucideIcon,
 } from "lucide-react";
-import QRCode from "qrcode";
-
-/* ─── constants ──────────────────────────────────────────────────────────── */
-const UPI_ID = "akashranageu@okaxis";
-const UPI_NAME = "Eromify";
-
-function buildUpiLink(amount: number, planName: string) {
-  const tn = encodeURIComponent(planName);
-  const pn = encodeURIComponent(UPI_NAME);
-  return `upi://pay?pa=${UPI_ID}&pn=${pn}&am=${amount}&cu=INR&tn=${tn}`;
-}
 
 /* ─── plan data ─────────────────────────────────────────────────────────── */
 const PLANS: {
@@ -161,320 +148,20 @@ function Counter({ value, prefix = "" }: { value: number; prefix?: string }) {
   return <>{prefix}{display}</>;
 }
 
-/* ─── UPI Modal ─────────────────────────────────────────────────────────── */
-// TEMPORARY — remove this entire component when proper payment gateway is live
-interface UpiModalProps {
-  plan: (typeof PLANS)[0];
-  onClose: () => void;
-  onSuccess: (planName: string, credits: number) => void;
-  userEmail: string;
-  userId: string;
-}
-
-function UpiModal({ plan, onClose, onSuccess, userEmail, userId }: UpiModalProps) {
-  const upiLink = buildUpiLink(plan.price, plan.name);
-
-  const [isMobile, setIsMobile] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const [showUtroStep, setShowUtrStep] = useState(false);
-  const [utrValue, setUtrValue] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  // Detect mobile
-  useEffect(() => {
-    const mobile =
-      /android|iphone|ipad|ipod|windows phone/i.test(navigator.userAgent) ||
-      window.innerWidth < 768;
-    setIsMobile(mobile);
-  }, []);
-
-  // Generate QR code locally using the qrcode package
-  useEffect(() => {
-    if (isMobile) return;
-    QRCode.toDataURL(upiLink, {
-      width: 240,
-      margin: 2,
-      color: { dark: "#000000", light: "#ffffff" },
-      errorCorrectionLevel: "M",
-    }).then(setQrDataUrl).catch(console.error);
-  }, [isMobile, upiLink]);
-
-  const copyUpiId = () => {
-    navigator.clipboard.writeText(UPI_ID).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    });
-  };
-
-  const handleUpiPay = () => {
-    window.location.href = upiLink;
-    // Show UTR step after a short delay so user can switch back
-    setTimeout(() => setShowUtrStep(true), 1500);
-  };
-
-  const handleSubmitUtr = useCallback(async () => {
-    if (!utrValue.trim()) {
-      setSubmitError("Please enter your UTR / Transaction ID.");
-      return;
-    }
-    setSubmitting(true);
-    setSubmitError("");
-    try {
-      const res = await fetch("/api/payment/upi-submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          utrId: utrValue.trim(),
-          plan: plan.id,
-          amount: plan.price,
-          userEmail,
-          userId,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Submission failed.");
-      setSubmitted(true);
-      setTimeout(() => onSuccess(plan.name, plan.credits), 2500);
-    } catch (err: any) {
-      setSubmitError(err.message || "Something went wrong. Please try again.");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [utrValue, plan, userEmail, userId, onSuccess]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="relative w-full max-w-md rounded-3xl overflow-hidden"
-        style={{
-          background: "linear-gradient(160deg,#0e0e22 0%,#131330 100%)",
-          border: `1px solid ${plan.border}`,
-          boxShadow: `0 0 0 1px ${plan.border}, 0 30px 80px ${plan.glow}, inset 0 1px 0 rgba(255,255,255,0.06)`,
-        }}
-      >
-        {/* Top accent line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px]"
-          style={{ background: `linear-gradient(90deg,transparent,${plan.accent},transparent)` }} />
-
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
-          style={{ color: "rgba(255,255,255,0.5)" }}
-          aria-label="Close"
-        >
-          <X className="w-4 h-4" />
-        </button>
-
-        <div className="p-7">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: plan.iconBg }}>
-                <plan.icon className="w-4 h-4" style={{ color: plan.accent }} />
-              </div>
-              <span className="text-sm font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>
-                Pay for
-              </span>
-            </div>
-            <h2 className="text-2xl font-black text-white">{plan.name}</h2>
-            <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-              {plan.credits.toLocaleString()} credits · one-time payment
-            </p>
-          </div>
-
-          {/* Amount pill */}
-          <div className="flex items-center justify-between mb-6 px-4 py-3 rounded-2xl"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>
-              Amount to pay
-            </span>
-            <span className="text-2xl font-black text-white">₹{plan.price.toLocaleString()}</span>
-          </div>
-
-          {/* ── Success state ── */}
-          {submitted ? (
-            <div className="text-center py-6">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)" }}>
-                <CheckCheck className="w-8 h-8" style={{ color: "#34d399" }} />
-              </div>
-              <h3 className="text-xl font-black text-white mb-2">Payment Submitted!</h3>
-
-            </div>
-          ) : (
-            <>
-              {/* ── Mobile: UPI deep link ── */}
-              {isMobile ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Smartphone className="w-4 h-4" style={{ color: plan.accent }} />
-                    <span className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: "rgba(255,255,255,0.4)" }}>
-                      Mobile Payment
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleUpiPay}
-                    className="w-full py-4 rounded-2xl font-black text-white text-base flex items-center justify-center gap-2 transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98]"
-                    style={{
-                      background: `linear-gradient(135deg,${plan.accent}cc,${plan.accent})`,
-                      boxShadow: `0 0 30px ${plan.glow}`,
-                    }}
-                  >
-                    <Smartphone className="w-5 h-5" />
-                    Pay ₹{plan.price.toLocaleString()} with UPI
-                  </button>
-                  <p className="text-[11px] text-center" style={{ color: "rgba(255,255,255,0.3)" }}>
-                    Opens Google Pay · PhonePe · Paytm · BHIM or any UPI app
-                  </p>
-
-                  {/* After tapping Pay, show UTR step */}
-                  {!showUtroStep && (
-                    <button
-                      onClick={() => setShowUtrStep(true)}
-                      className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
-                      style={{ color: "rgba(255,255,255,0.4)", border: "1px dashed rgba(255,255,255,0.12)" }}
-                    >
-                      Already paid? Enter Transaction ID →
-                    </button>
-                  )}
-                </div>
-              ) : (
-                /* ── Desktop: QR code ── */
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Monitor className="w-4 h-4" style={{ color: plan.accent }} />
-                    <span className="text-xs font-bold uppercase tracking-widest"
-                      style={{ color: "rgba(255,255,255,0.4)" }}>
-                      Scan &amp; Pay
-                    </span>
-                  </div>
-
-                  {/* QR code */}
-                  <div className="flex justify-center">
-                    <div className="p-4 rounded-2xl" style={{ background: "#fff", display: "inline-block" }}>
-                      {qrDataUrl ? (
-                        <img
-                          src={qrDataUrl}
-                          alt={`UPI QR code for ${plan.name}`}
-                          width={200}
-                          height={200}
-                          className="block"
-                        />
-                      ) : (
-                        <div className="w-[200px] h-[200px] flex items-center justify-center"
-                          style={{ color: "#888" }}>
-                          <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-center" style={{ color: "rgba(255,255,255,0.4)" }}>
-                    Scan with Google Pay · PhonePe · Paytm · BHIM or any UPI app
-                  </p>
-
-                  {/* UPI ID row */}
-                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <span className="flex-1 text-sm font-mono font-bold text-white">{UPI_ID}</span>
-                    <button
-                      onClick={copyUpiId}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 active:scale-95"
-                      style={{
-                        background: copied ? "rgba(16,185,129,0.2)" : `rgba(255,255,255,0.08)`,
-                        color: copied ? "#34d399" : "rgba(255,255,255,0.7)",
-                        border: copied ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(255,255,255,0.12)",
-                      }}
-                    >
-                      {copied ? <CheckCheck className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                      {copied ? "Copied!" : "Copy UPI ID"}
-                    </button>
-                  </div>
-
-                  {/* Show UTR step on desktop */}
-                  {!showUtroStep && (
-                    <button
-                      onClick={() => setShowUtrStep(true)}
-                      className="w-full py-2.5 rounded-xl text-sm font-semibold transition-colors hover:bg-white/5"
-                      style={{ color: "rgba(255,255,255,0.4)", border: "1px dashed rgba(255,255,255,0.12)" }}
-                    >
-                      Paid? Enter Transaction ID →
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {/* ── UTR Submission step (shared mobile + desktop) ── */}
-              {showUtroStep && (
-                <div className="mt-5 pt-5 space-y-3"
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                  <p className="text-sm font-bold text-white">Enter your UTR / Transaction ID</p>
-                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                    Find it in your UPI app under payment history. Example: <span className="font-mono">427812345678</span>
-                  </p>
-                  <input
-                    id="utr-input"
-                    type="text"
-                    value={utrValue}
-                    onChange={(e) => setUtrValue(e.target.value)}
-                    placeholder="e.g. 427812345678"
-                    className="w-full px-4 py-3 rounded-xl text-sm font-mono text-white outline-none transition-all"
-                    style={{
-                      background: "rgba(255,255,255,0.05)",
-                      border: `1px solid ${submitError ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.12)"}`,
-                    }}
-                    onFocus={(e) =>
-                      (e.target.style.border = `1px solid ${plan.accent}88`)
-                    }
-                    onBlur={(e) =>
-                      (e.target.style.border = `1px solid ${submitError ? "rgba(239,68,68,0.6)" : "rgba(255,255,255,0.12)"}`)
-                    }
-                    autoFocus
-                  />
-                  {submitError && (
-                    <p className="text-xs" style={{ color: "#f87171" }}>{submitError}</p>
-                  )}
-                  <button
-                    id="ive-paid-btn"
-                    onClick={handleSubmitUtr}
-                    disabled={submitting || !utrValue.trim()}
-                    className="w-full py-3.5 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-                    style={{
-                      background: `linear-gradient(135deg,${plan.accent}cc,${plan.accent})`,
-                      boxShadow: `0 0 25px ${plan.glow}`,
-                    }}
-                  >
-                    {submitting ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Verifying…
-                      </>
-                    ) : (
-                      <>
-                        <CheckCheck className="w-4 h-4" />
-                        I&apos;ve Paid — Submit
-                      </>
-                    )}
-                  </button>
-
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+/* ─── PayU form POST helper ──────────────────────────────────────────────────────── */
+function submitToPayU(fields: Record<string, string>, payuUrl: string) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = payuUrl;
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
 }
 
 /* ─── main component ────────────────────────────────────────────────────── */
@@ -485,11 +172,9 @@ export default function PricingPage() {
   const [visible, setVisible] = useState(false);
   const [stars, setStars] = useState<{ w: number; h: number; top: number; left: number; dur: number; delay: number }[]>([]);
 
-  // UPI modal state
-  const [upiPlan, setUpiPlan] = useState<(typeof PLANS)[0] | null>(null);
-
   // Track pricing page view for admin analytics
   useAnalytics("pricing");
+
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -511,27 +196,42 @@ export default function PricingPage() {
     setTimeout(() => setToast(null), 5000);
   };
 
-  // ── TEMPORARY: UPI checkout — replace with gateway handler when approved ──
-  const handlePurchase = (plan: (typeof PLANS)[0]) => {
+  // ── PayU checkout handler ──────────────────────────────────────────────────────────
+  const handlePurchase = async (plan: (typeof PLANS)[0]) => {
     if (!plan.available) return;
     if (status === "unauthenticated") { signIn("google"); return; }
 
-    // Fire-and-forget click tracking (never blocks the UI)
+    setLoading(plan.id);
+
+    // Fire-and-forget click tracking
     fetch("/api/payment/track-click", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planId: plan.id, planName: plan.name, amount: plan.price }),
-    }).catch(() => {/* silent */});
+    }).catch(() => {});
 
-    setUpiPlan(plan);
-  };
+    try {
+      const res = await fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          packId: plan.id,
+          userEmail: session?.user?.email ?? "",
+          userId: (session?.user as { id?: string })?.id ?? "",
+          userName: session?.user?.name ?? "User",
+        }),
+      });
 
-  const handleUpiSuccess = (planName: string, credits: number) => {
-    setUpiPlan(null);
-    showToast(
-      `✅ Payment submitted! Your ${planName} (${credits.toLocaleString()} credits) will be activated within 1 hour.`,
-      true
-    );
+      if (!res.ok) throw new Error("Failed to create order");
+
+      const { key, txnid, amount, productinfo, firstname, email, surl, furl, hash, payuUrl } = await res.json();
+      submitToPayU({ key, txnid, amount, productinfo, firstname, email, surl, furl, hash }, payuUrl);
+      // Page will navigate away to PayU — no need to reset loading
+    } catch (err) {
+      console.error(err);
+      showToast("Something went wrong. Please try again.", false);
+      setLoading(null);
+    }
   };
 
   return (
@@ -592,16 +292,8 @@ export default function PricingPage() {
         .discount-badge{animation:discount-bounce 2s 0.8s ease-in-out infinite}
       `}</style>
 
-      {/* ── UPI Modal (TEMPORARY) ── */}
-      {upiPlan && (
-        <UpiModal
-          plan={upiPlan}
-          onClose={() => { setUpiPlan(null); setLoading(null); }}
-          onSuccess={handleUpiSuccess}
-          userEmail={session?.user?.email || ""}
-          userId={(session?.user as any)?.id || ""}
-        />
-      )}
+
+
 
       <div className="pricing-root min-h-screen w-full relative overflow-hidden" style={{ background: "linear-gradient(135deg,#060610 0%,#0a0a1c 50%,#07071a 100%)" }}>
 

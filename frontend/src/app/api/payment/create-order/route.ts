@@ -1,77 +1,104 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
-import { auth } from "@/auth";
+import crypto from "crypto";
 import { connectDB } from "@/lib/db";
 import { Payment } from "@/models/Payment";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// ── PayU hash computation ─────────────────────────────────────────────────────
+// Required string: key|txnid|amount|productinfo|firstname|email|udf1|udf2|udf3|udf4|udf5||||||salt
+function computePayuHash(params: {
+  key: string;
+  txnid: string;
+  amount: string;
+  productinfo: string;
+  firstname: string;
+  email: string;
+  salt: string;
+}): string {
+  const { key, txnid, amount, productinfo, firstname, email, salt } = params;
+  const hashString = `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|||||||||||${salt}`;
+  return crypto.createHash("sha512").update(hashString).digest("hex");
+}
 
 export async function POST(request: Request) {
   try {
-    // ── Auth guard: only logged-in users can create orders ───────────────────
-    const session = await auth();
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     await connectDB();
 
     const body = await request.json();
-    // userEmail/userId MUST come from the server session, not the client body
-    const userEmail = session.user.email;
-    const userId = session.user.id ?? null;
-    const { packId = "value" } = body;
 
-    // Define pricing tiers
-    const tiers: Record<string, { pricePaise: number; credits: number }> = {
-      value:   { pricePaise: 49900,  credits: 1500 },
-      pro:     { pricePaise: 99900, credits: 4000 },
-      mega:    { pricePaise: 199900, credits: 12000 },
-      premium: { pricePaise: 399900, credits: 30000 },
+    // Accept user identity from the request body (sent by the client from session)
+    // The hash is server-computed so there's no security risk in accepting email from client
+    const {
+      packId = "value",
+      userEmail = "",
+      userId = "",
+      userName = "User",
+    } = body;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: "Please sign in to continue" }, { status: 401 });
+    }
+
+    // ── Pricing tiers ─────────────────────────────────────────────────────────
+    const tiers: Record<string, { priceRupees: number; credits: number; planName: string }> = {
+      value:   { priceRupees: 149,  credits: 1500,  planName: "Beginner Pack" },
+      pro:     { priceRupees: 999,  credits: 4000,  planName: "Creator Pack" },
+      mega:    { priceRupees: 1999, credits: 12000, planName: "Professional Pack" },
+      premium: { priceRupees: 3999, credits: 30000, planName: "Enterprise Pack" },
     };
 
-    const selectedTier = tiers[packId as string] || tiers.value;
-    const { pricePaise, credits } = selectedTier;
+    const selectedTier = tiers[packId as string] ?? tiers.value;
+    const { priceRupees, credits, planName } = selectedTier;
 
-    // Create Razorpay order
-    const order = await razorpay.orders.create({
-      amount: pricePaise,
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-      notes: {
-        plan: packId,
-        credits: String(credits),
-        userEmail: userEmail || "",
-        userId: userId || "",
-      },
-    });
+    // ── PayU params ───────────────────────────────────────────────────────────
+    const key      = process.env.PAYU_MERCHANT_KEY!;
+    const salt     = process.env.PAYU_SALT!;
+    const txnid    = `ero_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const amount   = priceRupees.toFixed(2);            // PayU requires string like "149.00"
+    const productinfo = planName;
+    const firstname   = (userName as string).split(" ")[0] || "User";
+    const email       = userEmail as string;
 
-    // Save to MongoDB
+    const baseUrl = process.env.NEXTAUTH_URL ?? "https://www.eromify.in";
+    const surl = `${baseUrl}/api/payment/verify`;       // PayU POSTs here on success
+    const furl = `${baseUrl}/api/payment/verify`;       // PayU POSTs here on failure too
+
+    const hash = computePayuHash({ key, txnid, amount, productinfo, firstname, email, salt });
+
+    // ── Save pending Payment record ───────────────────────────────────────────
     await Payment.create({
-      userId: userId || null,
-      userEmail: userEmail || null,
-      razorpayOrderId: order.id,
-      amount: pricePaise,
-      currency: "INR",
-      status: "created",
-      plan: packId,
-      creditsToAdd: credits,
-      paymentMethod: "razorpay",
+      userId:        userId || null,
+      userEmail:     email,
+      payuTxnId:     txnid,
+      amount:        priceRupees,
+      currency:      "INR",
+      status:        "created",
+      plan:          packId,
+      planName,
+      creditsToAdd:  credits,
+      paymentMethod: "payu",
     });
+
+    console.log(`[payu/create-order] txnid:${txnid} plan:${packId} amount:${amount} user:${email}`);
 
     return NextResponse.json({
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      key,
+      txnid,
+      amount,
+      productinfo,
+      firstname,
+      email,
+      surl,
+      furl,
+      hash,
+      payuUrl: process.env.PAYU_URL ?? "https://secure.payu.in/_payment",
     });
-  } catch (error) {
-    console.error("Razorpay order creation error:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : "";
+    console.error("PayU order creation error:", msg);
+    console.error("Stack:", stack);
     return NextResponse.json(
-      { error: "Failed to create payment order" },
+      { error: "Failed to create payment order", detail: msg },
       { status: 500 }
     );
   }

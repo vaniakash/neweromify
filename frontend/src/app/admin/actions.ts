@@ -17,22 +17,30 @@ import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 
-export async function loginAdmin(formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+const ADMIN_EMAILS = [
+  "akashrana4992@gmail.com",
+  "akashrana49927@gmail.com",
+];
+const ADMIN_PASSWORD = "MASTER";
 
-  if (email === "akashrana4992@gmail.com" && password === "MASTER") {
+export async function loginAdmin(formData: FormData) {
+  const email    = (formData.get("email")    as string)?.trim().toLowerCase();
+  const password = (formData.get("password") as string)?.trim();
+
+  if (ADMIN_EMAILS.includes(email) && password === ADMIN_PASSWORD) {
     const cookieStore = await cookies();
     cookieStore.set("admin_session", "authenticated", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",          // lax works for ngrok too
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
     });
     redirect("/admin");
   }
-  return;
+
+  // Wrong credentials — redirect back with error flag
+  redirect("/admin/login?error=1");
 }
 
 export async function logoutAdmin() {

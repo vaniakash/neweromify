@@ -24,7 +24,8 @@ export default async function AdminDashboard() {
     { $group: { _id: "$status", total: { $sum: "$amount" }, count: { $sum: 1 } } },
   ]);
   const byStatus: Record<string, { total: number; count: number }> = {};
-  for (const r of revenueAgg) byStatus[r._id] = { total: r.total / 100, count: r.count };
+  // amount is stored in rupees (not paise) so no /100 needed
+  for (const r of revenueAgg) byStatus[r._id] = { total: r.total, count: r.count };
 
   const totalRevenueINR = byStatus["paid"]?.total ?? 0;
   const pendingRevenue = byStatus["created"]?.total ?? 0;
@@ -35,7 +36,7 @@ export default async function AdminDashboard() {
     { $match: { status: "paid", createdAt: { $gte: monthStart } } },
     { $group: { _id: null, total: { $sum: "$amount" } } },
   ]);
-  const mrrINR = (mrrResult[0]?.total ?? 0) / 100;
+  const mrrINR = mrrResult[0]?.total ?? 0;   // amount stored in rupees
 
   const conversionRate =
     totalUsers > 0 ? ((activeSubs / totalUsers) * 100).toFixed(2) : "0.00";
@@ -62,7 +63,7 @@ export default async function AdminDashboard() {
     ]);
 
   const revenueMap = Object.fromEntries(
-    revenueByMonth.map((r) => [`${r._id.year}-${r._id.month}`, r.total / 100])
+    revenueByMonth.map((r) => [`${r._id.year}-${r._id.month}`, r.total])  // amount in rupees
   );
   const chartData = months.map((m) => ({
     ...m,
@@ -212,7 +213,7 @@ export default async function AdminDashboard() {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div className="txn-amount">₹{(p.amount / 100).toLocaleString("en-IN")}</div>
+                    <div className="txn-amount">₹{p.amount.toLocaleString("en-IN")}</div>
                     <div suppressHydrationWarning className="txn-time">
                       {p.createdAt && formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}
                     </div>

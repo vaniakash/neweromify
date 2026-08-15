@@ -1,9 +1,7 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
 // ─── Payment Model ──────────────────────────────────────────────────────────
-// Supports both Razorpay (legacy) and UPI (temporary) payment methods.
-// When a proper payment gateway (Cashfree / PhonePe / PayU) is integrated,
-// remove the UPI-specific fields and the "upi-submit" API route.
+// Supports Razorpay (legacy), UPI (legacy), and PayU (current) payment methods.
 
 export interface IPayment {
   _id?: mongoose.Types.ObjectId;
@@ -15,8 +13,12 @@ export interface IPayment {
   razorpayPaymentId?: string;
   razorpaySignature?: string;
 
-  // ── UPI fields (temporary — remove once gateway is approved) ────────────
-  utrId?: string;                                      // UTR / Transaction ID entered by user
+  // ── PayU fields ──────────────────────────────────────────────────────────
+  payuTxnId?: string;                                  // our generated txnid sent to PayU
+  payuPaymentId?: string;                              // PayU's mihpayid returned on success
+
+  // ── UPI fields (legacy — manual verification flow) ───────────────────────
+  utrId?: string;
   upiStatus?: "pending_verification" | "approved" | "rejected";
 
   // ── Shared fields ────────────────────────────────────────────────────────
@@ -25,7 +27,7 @@ export interface IPayment {
   plan: string;                                        // plan id e.g. "pro", "mega"
   planName?: string;                                   // human name e.g. "Creator Pack"
   creditsToAdd?: number;
-  paymentMethod: "razorpay" | "upi";                  // distinguishes the source
+  paymentMethod: "razorpay" | "upi" | "payu";         // distinguishes the source
   status: "created" | "paid" | "failed" | "pending_verification";
   createdAt?: Date;
   updatedAt?: Date;
@@ -36,12 +38,16 @@ const PaymentSchema = new Schema<IPayment>(
     userId:              { type: String },
     userEmail:           { type: String },
 
-    // Razorpay (optional — not used for UPI payments)
-    razorpayOrderId:     { type: String, sparse: true, unique: true },
+    // Razorpay (optional — not used for PayU payments)
+    razorpayOrderId:     { type: String, sparse: true },   // unique index dropped — was causing E11000 for PayU records
     razorpayPaymentId:   { type: String },
     razorpaySignature:   { type: String },
 
-    // UPI (temporary)
+    // PayU
+    payuTxnId:           { type: String, sparse: true, unique: true },
+    payuPaymentId:       { type: String },
+
+    // UPI (legacy)
     utrId:               { type: String },
     upiStatus: {
       type: String,
@@ -56,7 +62,7 @@ const PaymentSchema = new Schema<IPayment>(
     creditsToAdd:        { type: Number, default: 0 },
     paymentMethod: {
       type: String,
-      enum: ["razorpay", "upi"],
+      enum: ["razorpay", "upi", "payu"],
       required: true,
     },
     status: {

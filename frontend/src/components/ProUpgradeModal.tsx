@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Crown, Zap, Check, Lock, Sparkles, Star } from "lucide-react";
-import Script from "next/script";
 import { useSession, signIn } from "next-auth/react";
 
 interface ProUpgradeModalProps {
@@ -35,11 +34,21 @@ const proTools = [
   },
 ];
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Razorpay: any;
-  }
+// ── PayU form POST helper ─────────────────────────────────────────────────────
+// Creates a hidden form and auto-submits it to PayU's checkout page.
+function submitToPayU(fields: Record<string, string>, payuUrl: string) {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = payuUrl;
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
 }
 
 export function ProUpgradeModal({
@@ -63,101 +72,29 @@ export function ProUpgradeModal({
     }
 
     const currentEmail = userEmail || session?.user?.email || "";
-    const currentId = userId || session?.user?.id || "";
+    const currentId    = userId    || session?.user?.id    || "";
 
     setLoading(true);
     setError(null);
 
     try {
-      // Create order
       const res = await fetch("/api/payment/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // packId must be "starter" to match the ₹49 price shown in the UI
         body: JSON.stringify({ userEmail: currentEmail, userId: currentId, packId: "starter" }),
       });
 
       if (!res.ok) throw new Error("Failed to create payment order");
-      const { orderId, amount, currency, keyId } = await res.json();
 
-      // Open Razorpay checkout
-      const options = {
-        key: keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount,
-        currency,
-        name: "Eromify",
-        description: "Pro Plan — Unlock All Premium Tools",
-        order_id: orderId,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        handler: async (response: any) => {
-          try {
-            const verifyRes = await fetch("/api/payment/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                userEmail: currentEmail,
-                userId: currentId,
-              }),
-            });
+      const {
+        key, txnid, amount, productinfo, firstname, email,
+        surl, furl, hash, payuUrl,
+      } = await res.json();
 
-            if (!verifyRes.ok) throw new Error("Verification failed");
-
-            const data = await verifyRes.json();
-            if (data.success) {
-              // Save pro status in localStorage
-              localStorage.setItem("eromify_pro", "true");
-              localStorage.setItem(
-                "eromify_pro_payment_id",
-                response.razorpay_payment_id
-              );
-              // Re-fetch fresh credits + pro status from DB so UI updates immediately
-              try {
-                await new Promise((r) => setTimeout(r, 500)); // let DB write settle
-                const syncRes = await fetch("/api/user/sync-pro");
-                const syncData = await syncRes.json();
-                if (syncData.isPro) {
-                  localStorage.setItem("eromify_pro", "true");
-                } else {
-                  localStorage.removeItem("eromify_pro");
-                }
-                // Dispatch events so credit counter / pro badge refresh
-                window.dispatchEvent(
-                  new CustomEvent("eromify_credits_updated", {
-                    detail: { credits: syncData.credits ?? data.creditsAdded ?? 0 },
-                  })
-                );
-                window.dispatchEvent(new Event("eromify_pro_updated"));
-              } catch {
-                // Fallback — still signal a refresh
-                window.dispatchEvent(new Event("eromify_pro_updated"));
-              }
-              onSuccess?.();
-              onClose();
-            }
-          } catch {
-            setError("Payment verification failed. Please contact support.");
-          }
-        },
-        prefill: {
-          email: userEmail || "",
-        },
-        theme: {
-          color: "#1736cf",
-        },
-        modal: {
-          ondismiss: () => setLoading(false),
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", () => {
-        setError("Payment failed. Please try again.");
-        setLoading(false);
-      });
-      rzp.open();
+      // Auto-submit form to PayU — user is redirected to PayU checkout page
+      submitToPayU({ key, txnid, amount, productinfo, firstname, email, surl, furl, hash }, payuUrl);
+      // Note: we don't reach onSuccess here — PayU redirects back to surl (verify route)
+      // which handles granting credits and redirecting to /payment-success
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");
@@ -167,11 +104,6 @@ export function ProUpgradeModal({
 
   return (
     <>
-      <Script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        strategy="lazyOnload"
-      />
-
       {/* Backdrop */}
       {typeof document !== "undefined" && createPortal(
         <div
@@ -291,7 +223,7 @@ export function ProUpgradeModal({
             {/* Benefits */}
             <div className="flex gap-4 mb-6">
               {[
-                { icon: Zap, label: "Instant Access" },
+                { icon: Zap,  label: "Instant Access" },
                 { icon: Star, label: "All Future Tools" },
                 { icon: Check, label: "Secure Payment" },
               ].map(({ icon: Ic, label }) => (
@@ -334,7 +266,7 @@ export function ProUpgradeModal({
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
+                  Redirecting to PayU…
                 </>
               ) : (
                 <>
@@ -345,7 +277,7 @@ export function ProUpgradeModal({
             </button>
 
             <p className="text-center text-[10px] mt-3" style={{ color: "rgba(255,255,255,0.35)" }}>
-              🔒 Secured by Razorpay · UPI, Cards, Net Banking accepted
+              🔒 Secured by PayU · UPI, Cards, Net Banking accepted
             </p>
           </div>
         </div>
