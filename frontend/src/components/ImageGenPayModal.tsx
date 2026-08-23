@@ -32,8 +32,8 @@ interface Pack {
 
 const PACKS: Pack[] = [
   {
-    id: "value", name: "Beginner", tag: "₹149 · ~$1.79",
-    price: 149, credits: 1500,
+    id: "value", name: "Beginner", tag: "₹499 · ~$5.99",
+    price: 499, credits: 2500,
     accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
     iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
     icon: Star,

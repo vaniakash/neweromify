@@ -22,7 +22,7 @@ interface GalleryItem {
 
 const MODE_META: Record<Mode, { label: string; icon: React.ReactNode; color: string; desc: string }> = {
   text2img: { label: "Text → Image", icon: <Wand2 className="h-4 w-4" />, color: "from-violet-600 to-indigo-600", desc: "Generate any image from a text prompt" },
-  edit: { label: "Image Editing", icon: <ImagePlus className="h-4 w-4" />, color: "from-pink-600 to-rose-600", desc: "Upload an image and transform it with Klein" },
+  edit: { label: "Image Editing", icon: <ImagePlus className="h-4 w-4" />, color: "from-pink-600 to-rose-600", desc: "Upload an image and transform it with AI" },
   multiref: { label: "Multi-Reference", icon: <Layers className="h-4 w-4" />, color: "from-amber-500 to-orange-500", desc: "Combine 2 reference images into something new" },
 };
 
@@ -42,12 +42,12 @@ function UploadBox({ label, file, preview, onFile, onClear, id }: {
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</p>
       {preview ? (
-        <div className="relative group overflow-hidden rounded-xl border border-white/10 bg-black/20">
+        <div className="relative group overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={preview} alt={label} className="w-full max-h-48 object-contain bg-black/30" />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+          <img src={preview} alt={label} className="w-full max-h-48 object-contain bg-slate-100" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
             <button onClick={onClear} className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg">
               <Trash2 className="h-3 w-3" /> Remove
             </button>
@@ -55,9 +55,9 @@ function UploadBox({ label, file, preview, onFile, onClear, id }: {
           <p className="absolute bottom-2 left-2 text-[10px] bg-black/60 text-white px-2 py-0.5 rounded">{file?.name}</p>
         </div>
       ) : (
-        <label htmlFor={id} className="flex flex-col items-center justify-center gap-3 h-36 rounded-xl border-2 border-dashed border-white/20 bg-white/5 cursor-pointer hover:border-violet-500/60 hover:bg-violet-500/5 transition-all">
-          <ImagePlus className="h-8 w-8 text-slate-500" />
-          <p className="text-xs text-slate-500">Click to upload image</p>
+        <label htmlFor={id} className="flex flex-col items-center justify-center gap-3 h-36 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:border-violet-400 hover:bg-violet-50/50 transition-all">
+          <ImagePlus className="h-8 w-8 text-slate-400" />
+          <p className="text-xs text-slate-400">Click to upload image</p>
           <input id={id} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
         </label>
@@ -80,7 +80,6 @@ function AIInfluencerInner() {
   const [payModal, setPayModal] = useState<{ open: boolean; mode: "login" | "payment" }>({ open: false, mode: "payment" });
   const [credits, setCredits] = useState<number | null>(null);
 
-  // Auto-open modal if ?upgrade=true
   useEffect(() => {
     if (searchParams.get("upgrade") === "true") {
       setPayModal({ open: true, mode: status === "authenticated" ? "payment" : "login" });
@@ -102,7 +101,6 @@ function AIInfluencerInner() {
 
   useEffect(() => { fetchCredits(); }, [fetchCredits]);
 
-  // Upload states
   const [editFile, setEditFile] = useState<File | null>(null);
   const [editPreview, setEditPreview] = useState<string | null>(null);
   const [ref1File, setRef1File] = useState<File | null>(null);
@@ -110,7 +108,6 @@ function AIInfluencerInner() {
   const [ref2File, setRef2File] = useState<File | null>(null);
   const [ref2Preview, setRef2Preview] = useState<string | null>(null);
 
-  // Gallery
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [galleryLoading, setGalleryLoading] = useState(false);
   const [galleryZoomed, setGalleryZoomed] = useState<GalleryItem | null>(null);
@@ -186,47 +183,51 @@ function AIInfluencerInner() {
     navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000);
   };
 
-  if (status === "loading") return <div className="min-h-screen bg-[#080C14] flex items-center justify-center"><RefreshCw className="h-8 w-8 text-violet-400 animate-spin" /></div>;
+  if (status === "loading") return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <RefreshCw className="h-8 w-8 text-violet-500 animate-spin" />
+    </div>
+  );
 
   if (!session) return (
-    <div className="min-h-screen bg-[#080C14] flex items-center justify-center text-white">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-900">
       <div className="text-center space-y-4">
-        <div className="w-20 h-20 bg-violet-500/20 rounded-2xl flex items-center justify-center mx-auto">
-          <Lock className="h-10 w-10 text-violet-400" />
+        <div className="w-20 h-20 bg-violet-100 rounded-2xl flex items-center justify-center mx-auto">
+          <Lock className="h-10 w-10 text-violet-500" />
         </div>
         <h2 className="text-2xl font-black">Sign in to create</h2>
-        <p className="text-slate-400">You need to be signed in to use the AI Influencer Creator.</p>
+        <p className="text-slate-500">You need to be signed in to use the AI Influencer Creator.</p>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#080C14] text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Header */}
-      <header className="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-200">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-black text-white">AI Influencer Creator</h1>
-              <p className="text-[10px] text-slate-500">FLUX.2 Klein 4B · Saved to your gallery</p>
+              <h1 className="text-sm font-black text-slate-900">AI Influencer Creator</h1>
+              <p className="text-[10px] text-slate-400">High-quality AI · Saved to your gallery</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {status === "authenticated" && credits !== null && (
-              <div className="flex items-center gap-2 mr-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1.5 text-xs font-bold text-white">
-                <span className="text-violet-400">⚡</span>
-                <span className="hidden sm:inline">Credits:</span> <span className="text-violet-300">{credits}</span>
-                <button onClick={() => setPayModal({ open: true, mode: "payment" })} className="ml-1 rounded bg-violet-500/20 hover:bg-violet-500/40 px-2 py-0.5 transition text-[10px]">Buy</button>
+              <div className="flex items-center gap-2 mr-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700">
+                <span className="text-violet-500">⚡</span>
+                <span className="hidden sm:inline">Credits:</span> <span className="text-violet-600">{credits}</span>
+                <button onClick={() => setPayModal({ open: true, mode: "payment" })} className="ml-1 rounded bg-violet-100 hover:bg-violet-200 px-2 py-0.5 transition text-[10px] text-violet-700">Buy</button>
               </div>
             )}
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-xs text-slate-400">Klein API</span>
+            <span className="text-xs text-slate-400">AI Online</span>
           </div>
         </div>
       </header>
@@ -236,16 +237,24 @@ function AIInfluencerInner() {
         <div className="grid lg:grid-cols-[400px_1fr] gap-8">
           {/* LEFT */}
           <div className="space-y-5">
-            {/* Model badge */}
-            <div className="relative overflow-hidden rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-900/20 to-indigo-900/20 p-5">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            {/* NSFW / capability badge */}
+            <div className="relative overflow-hidden rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-indigo-50 p-5">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-violet-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
               <div className="relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="h-4 w-4 text-violet-400" />
-                  <span className="text-xs font-bold text-violet-400 uppercase tracking-wider">Active Model</span>
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  {["18+ Only", "NSFW", "Popular", "Auto Gallery"].map((tag) => (
+                    <span key={tag}
+                      className="px-2.5 py-1 rounded-full text-xs font-bold"
+                      style={{
+                        background: tag === "18+ Only" || tag === "NSFW" ? "rgba(220,38,38,0.1)" : "rgba(139,92,246,0.1)",
+                        color: tag === "18+ Only" || tag === "NSFW" ? "rgba(185,28,28,1)" : "rgba(109,40,217,1)",
+                        border: tag === "18+ Only" || tag === "NSFW" ? "1px solid rgba(239,68,68,0.4)" : "1px solid rgba(139,92,246,0.3)",
+                      }}>
+                      {tag}
+                    </span>
+                  ))}
                 </div>
-                <h2 className="text-xl font-black text-white mb-1">FLUX.2 Klein 4B</h2>
-                <p className="text-sm text-slate-400">All-in-one vision model — text-to-image, editing, and multi-reference.</p>
+                <p className="text-sm text-slate-500">Generate, edit, and blend ultra-realistic AI influencer images — every image is auto-saved to your gallery.</p>
               </div>
             </div>
 
@@ -257,11 +266,11 @@ function AIInfluencerInner() {
                 const isActive = mode === m;
                 return (
                   <button key={m} onClick={() => { setMode(m); setError(null); }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isActive ? "border-violet-500/60 bg-violet-500/10" : "border-white/10 bg-white/5 hover:border-white/20"}`}>
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br ${meta.color} ${isActive ? "shadow-lg" : "opacity-60"}`}>{meta.icon}</div>
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${isActive ? "border-violet-300 bg-violet-50" : "border-slate-200 bg-white hover:border-violet-200 hover:bg-violet-50/50"}`}>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br ${meta.color} ${isActive ? "shadow-md" : "opacity-70"}`}>{meta.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-bold ${isActive ? "text-white" : "text-slate-400"}`}>{meta.label}</p>
-                      <p className="text-xs text-slate-500 truncate">{meta.desc}</p>
+                      <p className={`text-sm font-bold ${isActive ? "text-violet-700" : "text-slate-600"}`}>{meta.label}</p>
+                      <p className="text-xs text-slate-400 truncate">{meta.desc}</p>
                     </div>
                     {isActive && <ChevronRight className="h-4 w-4 text-violet-400 flex-shrink-0" />}
                   </button>
@@ -282,28 +291,28 @@ function AIInfluencerInner() {
             <div className="space-y-2">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Prompt</p>
               <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe your AI influencer…" rows={4}
-                className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-slate-600 outline-none focus:border-violet-500/60 focus:ring-2 focus:ring-violet-500/20 transition" />
+                className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-300 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition" />
               <div className="space-y-1">
-                <p className="text-[10px] text-slate-600 uppercase tracking-wider">Examples:</p>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider">Examples:</p>
                 {EXAMPLES[mode].map((ex, i) => (
-                  <button key={i} onClick={() => setPrompt(ex)} className="text-left text-xs text-slate-500 hover:text-violet-400 py-1 px-2 rounded-lg hover:bg-violet-500/10 transition-all w-full truncate">→ {ex}</button>
+                  <button key={i} onClick={() => setPrompt(ex)} className="text-left text-xs text-slate-400 hover:text-violet-600 py-1 px-2 rounded-lg hover:bg-violet-50 transition-all w-full truncate">→ {ex}</button>
                 ))}
               </div>
             </div>
 
             {error && (
-              <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
-                <p className="text-xs text-red-300 leading-relaxed">{error}</p>
+              <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+                <p className="text-xs text-red-600 leading-relaxed">{error}</p>
               </div>
             )}
 
             <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating}
               className="w-full py-4 rounded-2xl font-black text-base text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden group"
-              style={{ background: isGenerating ? "linear-gradient(135deg,#374151,#1f2937)" : "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: isGenerating ? "none" : "0 0 30px rgba(124,58,237,0.4)" }}>
+              style={{ background: isGenerating ? "linear-gradient(135deg,#94a3b8,#64748b)" : "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: isGenerating ? "none" : "0 4px 20px rgba(124,58,237,0.35)" }}>
               {!isGenerating && <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full" />}
               <span className="relative flex items-center justify-center gap-3">
-                {isGenerating ? <><RefreshCw className="h-5 w-5 animate-spin" />Generating with Klein…</> : <><Wand2 className="h-5 w-5" />Generate Influencer Image <span className="ml-1 flex items-center justify-center rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm"><Zap className="mr-1 h-3 w-3" /> 5 Credits</span></>}
+                {isGenerating ? <><RefreshCw className="h-5 w-5 animate-spin" />Generating…</> : <><Wand2 className="h-5 w-5" />Generate Influencer Image <span className="ml-1 flex items-center justify-center rounded-full bg-white/20 px-2 py-0.5 text-[10px] text-white backdrop-blur-sm"><Zap className="mr-1 h-3 w-3" /> 5 Credits</span></>}
               </span>
             </button>
           </div>
@@ -311,31 +320,31 @@ function AIInfluencerInner() {
           {/* RIGHT — Live output */}
           <div className="space-y-4">
             {isGenerating && (
-              <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border border-white/10 bg-white/5 p-16 text-center min-h-[400px]">
+              <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border border-slate-200 bg-white p-16 text-center min-h-[400px]">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full border-4 border-violet-500/30 border-t-violet-500 animate-spin" />
-                  <div className="absolute inset-0 flex items-center justify-center"><Sparkles className="h-7 w-7 text-violet-400 animate-pulse" /></div>
+                  <div className="w-20 h-20 rounded-full border-4 border-violet-200 border-t-violet-500 animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center"><Sparkles className="h-7 w-7 text-violet-500 animate-pulse" /></div>
                 </div>
                 <div>
-                  <p className="font-black text-white text-lg">Klein is generating…</p>
-                  <p className="text-sm text-slate-500 mt-1">Uploading to your gallery when done</p>
+                  <p className="font-black text-slate-900 text-lg">AI is generating…</p>
+                  <p className="text-sm text-slate-400 mt-1">Uploading to your gallery when done</p>
                 </div>
               </div>
             )}
 
             {lastResult && !isGenerating && (
-              <div className="rounded-2xl border border-violet-500/30 overflow-hidden bg-black/40">
+              <div className="rounded-2xl border border-violet-200 overflow-hidden bg-white shadow-sm">
                 <div className="relative cursor-pointer" onClick={() => setZoomed(true)}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={lastResult} alt="Generated" className="w-full object-cover hover:scale-[1.01] transition-transform" />
                   <div className="absolute top-3 right-3"><Eye className="h-5 w-5 text-white drop-shadow-lg" /></div>
-                  <div className="absolute top-3 left-3 bg-emerald-500 text-black text-[10px] font-black px-2 py-0.5 rounded-md">✓ Saved to Gallery</div>
+                  <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md">✓ Saved to Gallery</div>
                 </div>
                 <div className="p-4 flex gap-3">
-                  <button onClick={() => copyPrompt(prompt)} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-sm text-slate-400 hover:text-white transition">
-                    {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}{copied ? "Copied!" : "Copy Prompt"}
+                  <button onClick={() => copyPrompt(prompt)} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-sm text-slate-500 hover:text-slate-700 transition">
+                    {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}{copied ? "Copied!" : "Copy Prompt"}
                   </button>
-                  <button onClick={() => handleDownload(lastResult, "latest")} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-violet-500/20 hover:bg-violet-500/40 text-sm text-violet-300 hover:text-white transition">
+                  <button onClick={() => handleDownload(lastResult, "latest")} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-sm text-violet-600 hover:text-violet-700 transition">
                     <Download className="h-4 w-4" />Download
                   </button>
                 </div>
@@ -343,13 +352,13 @@ function AIInfluencerInner() {
             )}
 
             {!lastResult && !isGenerating && (
-              <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border-2 border-dashed border-white/10 bg-white/3 p-16 text-center min-h-[400px]">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/20 flex items-center justify-center">
-                  <Wand2 className="h-10 w-10 text-violet-400/60" />
+              <div className="flex flex-col items-center justify-center gap-6 rounded-2xl border-2 border-dashed border-slate-200 bg-white p-16 text-center min-h-[400px]">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-100 to-indigo-100 border border-violet-200 flex items-center justify-center">
+                  <Wand2 className="h-10 w-10 text-violet-400" />
                 </div>
                 <div>
                   <p className="font-black text-slate-400 text-lg">Ready to create</p>
-                  <p className="text-sm text-slate-600 mt-1 max-w-xs">Enter a prompt and hit Generate. Every image is saved to your gallery automatically.</p>
+                  <p className="text-sm text-slate-400 mt-1 max-w-xs">Enter a prompt and hit Generate. Every image is saved to your gallery automatically.</p>
                 </div>
               </div>
             )}
@@ -360,15 +369,15 @@ function AIInfluencerInner() {
         <div>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-violet-500/20 rounded-xl flex items-center justify-center">
-                <Images className="h-5 w-5 text-violet-400" />
+              <div className="w-9 h-9 bg-violet-100 rounded-xl flex items-center justify-center">
+                <Images className="h-5 w-5 text-violet-600" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-white">My Gallery</h2>
-                <p className="text-xs text-slate-500">{gallery.length} image{gallery.length !== 1 ? "s" : ""} saved to Cloudinary</p>
+                <h2 className="text-xl font-black text-slate-900">My Gallery</h2>
+                <p className="text-xs text-slate-400">{gallery.length} image{gallery.length !== 1 ? "s" : ""} saved to Cloudinary</p>
               </div>
             </div>
-            <button onClick={fetchGallery} disabled={galleryLoading} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-sm text-slate-400 hover:text-white transition">
+            <button onClick={fetchGallery} disabled={galleryLoading} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-sm text-slate-500 hover:text-slate-700 transition">
               <RefreshCw className={`h-3.5 w-3.5 ${galleryLoading ? "animate-spin" : ""}`} />Refresh
             </button>
           </div>
@@ -376,26 +385,26 @@ function AIInfluencerInner() {
           {galleryLoading && gallery.length === 0 ? (
             <div className="flex items-center justify-center py-16"><RefreshCw className="h-8 w-8 text-violet-400 animate-spin" /></div>
           ) : gallery.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-4 rounded-2xl border-2 border-dashed border-white/10">
-              <Images className="h-12 w-12 text-slate-600" />
-              <p className="text-slate-500 text-sm">No images yet. Generate your first AI influencer above!</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-4 rounded-2xl border-2 border-dashed border-slate-200 bg-white">
+              <Images className="h-12 w-12 text-slate-300" />
+              <p className="text-slate-400 text-sm">No images yet. Generate your first AI influencer above!</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
               {gallery.map((item) => (
-                <div key={item._id} className="group relative rounded-xl overflow-hidden border border-white/10 hover:border-violet-500/40 bg-black/40 transition-all hover:-translate-y-1">
+                <div key={item._id} className="group relative rounded-xl overflow-hidden border border-slate-200 hover:border-violet-300 bg-white transition-all hover:-translate-y-1 shadow-sm hover:shadow-md">
                   <div className="relative aspect-square cursor-pointer" onClick={() => setGalleryZoomed(item)}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={item.cloudinaryUrl} alt={item.prompt} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                      <p className="text-[10px] text-white/80 line-clamp-2">{item.prompt}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                      <p className="text-[10px] text-white/90 line-clamp-2">{item.prompt}</p>
                     </div>
                   </div>
                   <div className="p-2 flex gap-1">
-                    <button onClick={() => handleDownload(item.cloudinaryUrl, item._id)} className="flex-1 flex items-center justify-center py-1 rounded-lg bg-violet-500/20 hover:bg-violet-500/40 text-[10px] text-violet-300 transition">
+                    <button onClick={() => handleDownload(item.cloudinaryUrl, item._id)} className="flex-1 flex items-center justify-center py-1 rounded-lg bg-violet-50 hover:bg-violet-100 border border-violet-200 text-[10px] text-violet-600 transition">
                       <Download className="h-3 w-3" />
                     </button>
-                    <button onClick={() => handleDelete(item._id)} className="flex items-center justify-center px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/30 text-red-400 transition">
+                    <button onClick={() => handleDelete(item._id)} className="flex items-center justify-center px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-500 transition">
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
@@ -408,8 +417,8 @@ function AIInfluencerInner() {
 
       {/* Lightbox - latest result */}
       {zoomed && lastResult && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setZoomed(false)}>
-          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition">
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setZoomed(false)}>
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition">
             <X className="h-5 w-5" />
           </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -419,25 +428,25 @@ function AIInfluencerInner() {
 
       {/* Gallery lightbox */}
       {galleryZoomed && (
-        <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setGalleryZoomed(null)}>
-          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition">
+        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setGalleryZoomed(null)}>
+          <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition">
             <X className="h-5 w-5" />
           </button>
           <div className="max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={galleryZoomed.cloudinaryUrl} alt={galleryZoomed.prompt} className="w-full max-h-[70vh] rounded-2xl object-contain shadow-2xl mb-4" />
-            <div className="bg-black/60 rounded-xl p-4 space-y-2">
-              <p className="text-white text-sm font-semibold">{galleryZoomed.prompt}</p>
+            <div className="bg-white rounded-xl p-4 space-y-2 shadow-lg">
+              <p className="text-slate-900 text-sm font-semibold">{galleryZoomed.prompt}</p>
               <div className="flex gap-3 text-xs text-slate-400">
-                <span className="bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full">{MODE_META[galleryZoomed.mode]?.label}</span>
+                <span className="bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">{MODE_META[galleryZoomed.mode]?.label}</span>
                 {galleryZoomed.generationMs && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{(galleryZoomed.generationMs / 1000).toFixed(1)}s</span>}
                 <span>{new Date(galleryZoomed.createdAt).toLocaleDateString()}</span>
               </div>
               <div className="flex gap-2 pt-1">
-                <button onClick={() => handleDownload(galleryZoomed.cloudinaryUrl, galleryZoomed._id)} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-violet-500/20 hover:bg-violet-500/40 text-sm text-violet-300 hover:text-white transition">
+                <button onClick={() => handleDownload(galleryZoomed.cloudinaryUrl, galleryZoomed._id)} className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-sm text-violet-600 transition">
                   <Download className="h-4 w-4" />Download
                 </button>
-                <button onClick={() => handleDelete(galleryZoomed._id)} className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/40 text-sm text-red-400 transition">
+                <button onClick={() => handleDelete(galleryZoomed._id)} className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-sm text-red-500 transition">
                   <Trash2 className="h-4 w-4" />Delete
                 </button>
               </div>
@@ -463,7 +472,7 @@ function AIInfluencerInner() {
 
 export default function AIInfluencerPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#080C14] flex items-center justify-center"><div className="w-8 h-8 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-8 h-8 border-4 border-violet-200 border-t-violet-500 rounded-full animate-spin" /></div>}>
       <AIInfluencerInner />
     </Suspense>
   );

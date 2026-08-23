@@ -10,7 +10,7 @@ import { Payment } from "@/models/Payment";
 
 // Plan metadata — mirrors the PLANS array on the pricing page
 const PLAN_META: Record<string, { credits: number; planName: string }> = {
-  value:   { credits: 1500,  planName: "Beginner Pack"      },
+  value:   { credits: 2500,  planName: "Beginner Pack"      },
   pro:     { credits: 4000,  planName: "Creator Pack"        },
   mega:    { credits: 12000, planName: "Professional Pack"   },
   premium: { credits: 30000, planName: "Enterprise Pack"     },

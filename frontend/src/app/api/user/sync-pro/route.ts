@@ -14,6 +14,7 @@ export async function GET() {
       isPro: !!user?.isPro,
       credits: typeof user?.credits === "number" ? user.credits : 0,
       mcpAccess: !!user?.mcpAccess,
+      motionControlAccess: !!user?.motionControlAccess,
     });
   } catch (error) {
     console.error("Pro sync error:", error);

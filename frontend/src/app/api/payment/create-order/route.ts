@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
     // ── Pricing tiers ─────────────────────────────────────────────────────────
     const tiers: Record<string, { priceRupees: number; credits: number; planName: string }> = {
-      value:   { priceRupees: 149,  credits: 1500,  planName: "Beginner Pack" },
+      value:   { priceRupees: 499,  credits: 2500,  planName: "Beginner Pack" },
       pro:     { priceRupees: 999,  credits: 4000,  planName: "Creator Pack" },
       mega:    { priceRupees: 1999, credits: 12000, planName: "Professional Pack" },
       premium: { priceRupees: 3999, credits: 30000, planName: "Enterprise Pack" },

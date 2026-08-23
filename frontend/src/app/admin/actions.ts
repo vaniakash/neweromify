@@ -5,7 +5,7 @@ const SUBSCRIPTION_PLANS: Record<
   string,
   { planName: string; credits: number; videoAccess: boolean; mcpAccess: boolean }
 > = {
-  value:   { planName: "Beginner Pack",      credits: 1500,  videoAccess: false, mcpAccess: false },
+  value:   { planName: "Beginner Pack",      credits: 2500,  videoAccess: false, mcpAccess: false },
   pro:     { planName: "Creator Pack",        credits: 4000,  videoAccess: true,  mcpAccess: false },
   mega:    { planName: "Professional Pack",   credits: 12000, videoAccess: true,  mcpAccess: true  },
   premium: { planName: "Enterprise Pack",     credits: 30000, videoAccess: true,  mcpAccess: true  },
@@ -136,5 +136,13 @@ export async function assignSubscription(formData: FormData) {
     }
   );
 
+  revalidatePath("/admin/users");
+}
+
+// ── Reset a user's credits to zero ───────────────────────────────────────────
+export async function resetCreditsToZero(userId: string) {
+  if (!userId) return;
+  await connectDB();
+  await User.findByIdAndUpdate(userId, { $set: { credits: 0 } });
   revalidatePath("/admin/users");
 }

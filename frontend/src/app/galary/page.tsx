@@ -151,7 +151,7 @@ export default function StudioPage() {
 
   if (status === "loading" || (status === "authenticated" && loading && images.length === 0)) {
     return (
-      <div className="min-h-screen bg-[#080810] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-violet-500/20 flex items-center justify-center">
             <Loader2 className="w-7 h-7 text-violet-400 animate-spin" />
@@ -169,9 +169,9 @@ export default function StudioPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         * { box-sizing: border-box; }
-        body { background: #080810; font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
         .studio-bg {
-          background: #080810;
+          background: #f8fafc;
           min-height: 100vh;
         }
         /* Masonry-like grid */
@@ -197,23 +197,23 @@ export default function StudioPage() {
 
       <div className="studio-bg">
         {/* ── Header ── */}
-        <header className="sticky top-0 z-40 border-b border-white/5 bg-[#080810]/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 border-b border-slate-200 bg-slate-50/80 backdrop-blur-xl">
           <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => router.push("/tools/creator/image-generator")}
-                  className="p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition"
+                  className="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-white transition"
                   title="Back to Generator"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-white" />
+                    <Sparkles className="w-4 h-4 text-slate-900" />
                   </div>
                   <div>
-                    <h1 className="text-sm font-bold text-white leading-none">My Studio</h1>
+                    <h1 className="text-sm font-bold text-slate-900 leading-none">My Studio</h1>
                     <p className="text-[10px] text-slate-500 mt-0.5">Your AI creations</p>
                   </div>
                 </div>
@@ -221,7 +221,7 @@ export default function StudioPage() {
 
               <div className="flex items-center gap-3">
                 {total > 0 && (
-                  <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs font-semibold text-slate-400">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500">
                     <ImageIcon className="w-3 h-3" />
                     {total} image{total !== 1 ? "s" : ""}
                   </span>
@@ -261,15 +261,15 @@ export default function StudioPage() {
           {!loading && images.length === 0 && !error && (
             <div className="flex flex-col items-center justify-center py-32 gap-6">
               <div className="relative">
-                <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-violet-600/20 to-blue-600/20 border border-white/10 flex items-center justify-center">
+                <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-violet-600/20 to-blue-600/20 border border-slate-200 flex items-center justify-center">
                   <Wand2 className="w-12 h-12 text-violet-400" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-violet-500 flex items-center justify-center">
-                  <Sparkles className="w-3 h-3 text-white" />
+                  <Sparkles className="w-3 h-3 text-slate-900" />
                 </div>
               </div>
               <div className="text-center">
-                <h2 className="text-2xl font-black text-white mb-2">Your Studio is empty</h2>
+                <h2 className="text-2xl font-black text-slate-900 mb-2">Your Studio is empty</h2>
                 <p className="text-slate-500 text-sm max-w-xs">
                   Every image you generate will be saved here automatically. Start creating!
                 </p>
@@ -291,7 +291,7 @@ export default function StudioPage() {
                 {images.map((img) => (
                   <div
                     key={img._id}
-                    className="studio-card group relative overflow-hidden rounded-2xl border border-white/8 bg-white/3 cursor-pointer transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-black/60 hover:-translate-y-0.5"
+                    className="studio-card group relative overflow-hidden rounded-2xl border border-slate-200 bg-white cursor-pointer transition-all duration-300 hover:border-white/20 hover:shadow-2xl hover:shadow-black/60 hover:-translate-y-0.5"
                     onClick={() => setLightbox(img)}
                   >
                     {/* Image */}
@@ -348,7 +348,7 @@ export default function StudioPage() {
 
                       {/* Bottom overlay with prompt */}
                       <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <p className="text-xs text-white/80 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-slate-900/80 line-clamp-2 leading-relaxed">
                           {img.prompt}
                         </p>
                         <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-slate-500">
@@ -359,8 +359,8 @@ export default function StudioPage() {
 
                       {/* Zoom hint */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                        <div className="rounded-full bg-black/50 p-2 backdrop-blur-sm">
-                          <ZoomIn className="w-5 h-5 text-white" />
+                        <div className="rounded-full bg-white/80 p-2 backdrop-blur-sm">
+                          <ZoomIn className="w-5 h-5 text-slate-900" />
                         </div>
                       </div>
                     </div>
@@ -374,7 +374,7 @@ export default function StudioPage() {
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1 || loading}
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="w-4 h-4" /> Previous
                   </button>
@@ -384,7 +384,7 @@ export default function StudioPage() {
                   <button
                     onClick={() => setPage((p) => Math.min(pages, p + 1))}
                     disabled={page >= pages || loading}
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Next <ChevronRight className="w-4 h-4" />
                   </button>
@@ -399,12 +399,12 @@ export default function StudioPage() {
       {lightbox && (
         <div
           ref={lightboxRef}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-xl"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/95 p-4 backdrop-blur-xl text-white"
           onClick={() => setLightbox(null)}
         >
           {/* Close */}
           <button
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-10"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-slate-900 flex items-center justify-center hover:bg-white/20 transition z-10"
             onClick={() => setLightbox(null)}
           >
             <X className="w-5 h-5" />
@@ -413,7 +413,7 @@ export default function StudioPage() {
           {/* Prev arrow */}
           {lightboxIdx > 0 && (
             <button
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 text-slate-900 flex items-center justify-center hover:bg-white/20 transition z-10"
               onClick={(e) => { e.stopPropagation(); setLightbox(images[lightboxIdx - 1]); }}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -423,7 +423,7 @@ export default function StudioPage() {
           {/* Next arrow */}
           {lightboxIdx < images.length - 1 && (
             <button
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 text-slate-900 flex items-center justify-center hover:bg-white/20 transition z-10"
               onClick={(e) => { e.stopPropagation(); setLightbox(images[lightboxIdx + 1]); }}
             >
               <ChevronRight className="w-5 h-5" />
@@ -435,7 +435,7 @@ export default function StudioPage() {
             className="relative max-w-4xl w-full flex flex-col gap-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative rounded-2xl overflow-hidden bg-black/50">
+            <div className="relative rounded-2xl overflow-hidden bg-white/80">
               <Image
                 src={lightbox.cloudinaryUrl}
                 alt={lightbox.prompt}
@@ -447,9 +447,9 @@ export default function StudioPage() {
             </div>
 
             {/* Info bar */}
-            <div className="flex items-start justify-between gap-4 rounded-2xl bg-white/5 border border-white/10 px-5 py-4 backdrop-blur-sm">
+            <div className="flex items-start justify-between gap-4 rounded-2xl bg-white border border-slate-200 px-5 py-4 backdrop-blur-sm">
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-white/90 leading-relaxed line-clamp-3">{lightbox.prompt}</p>
+                <p className="text-sm text-slate-900/90 leading-relaxed line-clamp-3">{lightbox.prompt}</p>
                 <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
                   {lightbox.model && (
                     <span className="rounded-md bg-violet-500/20 px-2 py-0.5 text-violet-300 font-semibold">
@@ -465,7 +465,7 @@ export default function StudioPage() {
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => handleCopyPrompt(lightbox)}
-                  className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20 transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-slate-900 hover:bg-white/20 transition"
                 >
                   {copiedId === lightbox._id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                   {copiedId === lightbox._id ? "Copied!" : "Copy"}

@@ -24,8 +24,9 @@ export interface IUser {
   isPro?: boolean;
   proExpiresAt?: Date | null;
   credits?: number;
-  videoAccess?: boolean;  // true only for Pro Pack (₹199) & Mega Pack (₹499)
-  mcpAccess?: boolean;    // true only for Professional Pack (₹499/mega) & Enterprise Pack (₹1999/premium)
+  videoAccess?: boolean;           // true only for Pro Pack (₹199) & Mega Pack (₹499)
+  mcpAccess?: boolean;             // true only for Professional Pack (₹499/mega) & Enterprise Pack (₹1999/premium)
+  motionControlAccess?: boolean;   // true only for Enterprise Pack (₹3999/premium)
   mcpApiKeys?: IMcpApiKey[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -51,13 +52,18 @@ const UserSchema = new Schema<IUser>(
     isPro:         { type: Boolean, default: false },
     proExpiresAt:  { type: Date, default: null },
     credits:       { type: Number, default: 0 },
-    videoAccess:   { type: Boolean, default: false },
-    mcpAccess:     { type: Boolean, default: false },
-    mcpApiKeys:    { type: [McpApiKeySchema], default: [] },
+    videoAccess:          { type: Boolean, default: false },
+    mcpAccess:            { type: Boolean, default: false },
+    motionControlAccess:  { type: Boolean, default: false },
+    mcpApiKeys:           { type: [McpApiKeySchema], default: [] },
   },
   { timestamps: true }
 );
 
-// Use the standard Mongoose model caching pattern — safe in both dev and production
+// Use the standard Mongoose model caching pattern — safe in both dev and production.
+// In dev, we delete the cached model so hot-reload always picks up schema changes.
+if (process.env.NODE_ENV === "development" && mongoose.models.User) {
+  delete (mongoose.models as Record<string, unknown>).User;
+}
 export const User = (mongoose.models.User as mongoose.Model<IUser>) || model<IUser>("User", UserSchema);
 

@@ -8,6 +8,7 @@ import {
   reduceCredits,
   reduceCreditsFromUser,
   assignSubscription,
+  resetCreditsToZero,
 } from "@/app/admin/actions";
 import { UserSearch } from "./UserSearch";
 import { Suspense } from "react";
@@ -775,6 +776,28 @@ export default async function AdminUsers({
                           }}
                         >
                           −10 🔻
+                        </button>
+                      </form>
+
+                      {/* Reset credits to 0 */}
+                      <form action={resetCreditsToZero.bind(null, user._id!.toString())}>
+                        <button
+                          type="submit"
+                          title={`Reset ALL credits to 0 for ${user.email ?? user.name}. This cannot be undone.`}
+                          style={{
+                            padding: "5px 10px",
+                            borderRadius: 8,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            border: "1px solid rgba(239,68,68,0.45)",
+                            background: "rgba(239,68,68,0.1)",
+                            color: "#f87171",
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          ⚠ Reset 0
                         </button>
                       </form>
                     </div>

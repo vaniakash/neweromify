@@ -204,7 +204,7 @@ export default function TextToImageClient() {
 
   return (
     <>
-      <div className="min-h-screen lg:h-screen bg-[#050505] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-violet-500/30">
+      <div className="min-h-screen lg:h-screen bg-slate-50 flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-violet-500/30">
         
         {/* MAIN WORKSPACE */}
         <div className="flex-1 flex flex-col overflow-y-auto relative scroll-smooth">
@@ -216,10 +216,10 @@ export default function TextToImageClient() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-light text-white tracking-tight">Create <span className="font-semibold text-violet-400">Image</span></h1>
-                <p className="text-sm text-slate-400 mt-2 font-light">Transform your ideas into stunning visuals using AI.</p>
+                <h1 className="text-3xl font-light text-slate-900 tracking-tight">Create <span className="font-semibold text-violet-400">Image</span></h1>
+                <p className="text-sm text-slate-500 mt-2 font-light">Transform your ideas into stunning visuals using AI.</p>
               </div>
-              <button className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 rounded-full px-4 py-2 transition-all backdrop-blur-md">
+              <button className="flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 rounded-full px-4 py-2 transition-all backdrop-blur-md">
                 <HelpCircle className="h-4 w-4" />
                 Guide
               </button>
@@ -229,22 +229,22 @@ export default function TextToImageClient() {
             <div className="flex flex-col gap-3">
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-3xl blur opacity-20 group-focus-within:opacity-50 transition duration-500"></div>
-                <div className="relative bg-[#0a0a0c] border border-white/10 rounded-3xl p-5 shadow-2xl transition-all focus-within:border-violet-500/50">
+                <div className="relative bg-white border border-slate-200 rounded-3xl p-5 shadow-2xl transition-all focus-within:border-violet-500/50">
                   <textarea
                     ref={textareaRef}
                     value={prompt}
                     onChange={e => setPrompt(e.target.value)}
                     placeholder="Describe what you want to see... be as detailed as possible."
                     rows={4}
-                    className="w-full resize-none bg-transparent text-lg text-white placeholder-slate-600 outline-none font-light leading-relaxed"
+                    className="w-full resize-none bg-transparent text-lg text-slate-900 placeholder-slate-600 outline-none font-light leading-relaxed"
                   />
                   
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-200">
                     <button
                       onClick={() => setShowNegPrompt(!showNegPrompt)}
                       className={cn(
                         "flex items-center gap-2 text-xs font-medium transition-colors",
-                        showNegPrompt ? "text-violet-400" : "text-slate-500 hover:text-slate-300"
+                        showNegPrompt ? "text-violet-400" : "text-slate-500 hover:text-slate-600"
                       )}
                     >
                       <X className={cn("h-3.5 w-3.5 transition-transform", showNegPrompt ? "rotate-45" : "")} />
@@ -266,7 +266,7 @@ export default function TextToImageClient() {
                     onChange={e => setNegPrompt(e.target.value)}
                     placeholder="What should not be in the image? (e.g. blurry, bad anatomy, text...)"
                     rows={2}
-                    className="w-full resize-none rounded-2xl border border-red-500/20 bg-red-500/5 px-5 py-4 text-sm text-slate-300 placeholder-red-900/40 outline-none transition focus:border-red-500/40"
+                    className="w-full resize-none rounded-2xl border border-red-500/20 bg-red-500/5 px-5 py-4 text-sm text-slate-600 placeholder-red-900/40 outline-none transition focus:border-red-500/40"
                   />
                 </div>
               )}
@@ -274,33 +274,33 @@ export default function TextToImageClient() {
 
             {/* RESULT SECTION */}
             {(isGenerating || currentImage) && (
-              <div className="flex flex-col gap-5 bg-[#0a0a0c] border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+              <div className="flex flex-col gap-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg font-medium text-white flex items-center gap-2">
+                  <h2 className="text-lg font-medium text-slate-900 flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-violet-400" /> 
                     {isGenerating ? "Crafting your vision..." : "Generation Result"}
                   </h2>
                   {currentImage && (
                     <div className="flex gap-2">
-                       <button onClick={() => setLightboxImage(currentImage)} className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors" title="Zoom In">
+                       <button onClick={() => setLightboxImage(currentImage)} className="p-2 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-lg transition-colors" title="Zoom In">
                          <ZoomIn className="h-4 w-4" />
                        </button>
-                       <button onClick={() => setCurrentImage(null)} className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors" title="Close Result">
+                       <button onClick={() => setCurrentImage(null)} className="p-2 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-lg transition-colors" title="Close Result">
                          <X className="h-4 w-4" />
                        </button>
                     </div>
                   )}
                 </div>
 
-                <div className="relative w-full rounded-2xl overflow-hidden bg-black/50 min-h-[300px] md:min-h-[400px] flex items-center justify-center border border-white/5">
+                <div className="relative w-full rounded-2xl overflow-hidden bg-white/80 min-h-[300px] md:min-h-[400px] flex items-center justify-center border border-slate-200">
                    {isGenerating && !currentImage ? (
                       <div className="flex flex-col items-center gap-6">
                         <div className="relative w-16 h-16">
-                          <div className="absolute inset-0 rounded-full border-2 border-white/10"></div>
+                          <div className="absolute inset-0 rounded-full border-2 border-slate-200"></div>
                           <div className="absolute inset-0 rounded-full border-2 border-violet-500 border-t-transparent animate-spin"></div>
                           <Sparkles className="absolute inset-0 m-auto h-5 w-5 text-violet-400 animate-pulse" />
                         </div>
-                        <p className="text-sm font-medium text-slate-400 tracking-wide">Bringing your vision to life...</p>
+                        <p className="text-sm font-medium text-slate-500 tracking-wide">Bringing your vision to life...</p>
                       </div>
                    ) : currentImage && (
                      <div className="relative w-full h-full flex items-center justify-center p-4">
@@ -319,7 +319,7 @@ export default function TextToImageClient() {
                 {currentImage && (
                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-300 font-light truncate">{currentImage.prompt}</p>
+                        <p className="text-sm text-slate-600 font-light truncate">{currentImage.prompt}</p>
                         <p className="text-xs text-slate-500 mt-1">Generated with {MODELS.find(m => m.id === currentImage.model)?.label}</p>
                       </div>
                       <button
@@ -337,9 +337,9 @@ export default function TextToImageClient() {
             {/* Templates */}
             <div className="flex flex-col gap-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h2 className="text-lg font-medium text-white">Inspirations</h2>
+                <h2 className="text-lg font-medium text-slate-900">Inspirations</h2>
                 
-                <div className="flex items-center gap-1 bg-white/5 p-1 rounded-full border border-white/5 self-start sm:self-auto">
+                <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-slate-200 self-start sm:self-auto">
                    {(["tasks", "gallery", "library"] as const).map(tab => (
                       <button
                         key={tab}
@@ -347,8 +347,8 @@ export default function TextToImageClient() {
                         className={cn(
                           "px-4 py-1.5 text-xs font-medium rounded-full capitalize transition-all",
                           activeTab === tab
-                            ? "bg-white/10 text-white shadow-sm"
-                            : "text-slate-500 hover:text-slate-300"
+                            ? "bg-white/10 text-slate-900 shadow-sm"
+                            : "text-slate-500 hover:text-slate-600"
                         )}
                       >
                         {tab}
@@ -367,7 +367,7 @@ export default function TextToImageClient() {
                       "whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-medium transition-all border",
                       filterTag === tag
                         ? "bg-violet-500/20 text-violet-300 border-violet-500/30"
-                        : "bg-transparent text-slate-400 border-white/10 hover:border-white/20 hover:text-white"
+                        : "bg-transparent text-slate-500 border-slate-200 hover:border-white/20 hover:text-slate-900"
                     )}
                   >
                     {tag}
@@ -381,7 +381,7 @@ export default function TextToImageClient() {
                   <div
                     key={t.id}
                     onClick={() => { setPrompt(t.prompt); textareaRef.current?.focus(); window.scrollTo({top: 0, behavior: 'smooth'}); }}
-                    className="group relative rounded-2xl overflow-hidden cursor-pointer bg-white/5 border border-white/5 hover:border-violet-500/30 transition-all duration-300"
+                    className="group relative rounded-2xl overflow-hidden cursor-pointer bg-white border border-slate-200 hover:border-violet-500/30 transition-all duration-300"
                   >
                     <div className="aspect-[4/3] overflow-hidden">
                       <Image
@@ -392,16 +392,16 @@ export default function TextToImageClient() {
                         className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
                       />
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
                     
                     <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                      <p className="text-sm font-semibold text-white mb-1">{t.name}</p>
-                      <p className="text-xs text-slate-300/70 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">{t.desc}</p>
+                      <p className="text-sm font-semibold text-slate-900 mb-1">{t.name}</p>
+                      <p className="text-xs text-slate-600/70 line-clamp-2 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">{t.desc}</p>
                     </div>
                     
                     <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-2">
-                          <Wand2 className="h-4 w-4 text-white" />
+                          <Wand2 className="h-4 w-4 text-slate-900" />
                        </div>
                     </div>
                   </div>
@@ -413,11 +413,11 @@ export default function TextToImageClient() {
         </div>
 
         {/* RIGHT SIDEBAR */}
-        <div className="w-full lg:w-[360px] shrink-0 bg-[#0a0a0c] border-t lg:border-t-0 lg:border-l border-white/5 flex flex-col z-10 shadow-2xl relative">
+        <div className="w-full lg:w-[360px] shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-slate-200 flex flex-col z-10 shadow-2xl relative">
           
           <div className="flex-1 overflow-y-auto p-6 space-y-8">
             <div>
-              <h3 className="text-sm font-medium text-white mb-4 flex items-center gap-2">
+              <h3 className="text-sm font-medium text-slate-900 mb-4 flex items-center gap-2">
                  <Wand2 className="h-4 w-4 text-violet-400" />
                  Model Settings
               </h3>
@@ -425,7 +425,7 @@ export default function TextToImageClient() {
               <div className="relative">
                 <button
                   onClick={() => setModelDropdownOpen(o => !o)}
-                  className="w-full flex items-center justify-between gap-3 rounded-xl bg-white/[0.03] border border-white/10 px-4 py-3 text-left transition hover:bg-white/[0.05] group"
+                  className="w-full flex items-center justify-between gap-3 rounded-xl bg-white border border-slate-200 px-4 py-3 text-left transition hover:bg-white group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <Image
@@ -437,28 +437,28 @@ export default function TextToImageClient() {
                       unoptimized
                     />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{modelInfo.label}</p>
+                      <p className="text-sm font-medium text-slate-900 truncate">{modelInfo.label}</p>
                     </div>
                   </div>
                   <ChevronDown className={cn("h-4 w-4 text-slate-500 transition-transform", modelDropdownOpen && "rotate-180")} />
                 </button>
 
                 {modelDropdownOpen && (
-                  <div className="absolute z-50 mt-2 w-full rounded-xl border border-white/10 bg-[#0f0f13] shadow-xl overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute z-50 mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden backdrop-blur-xl animate-in fade-in zoom-in-95 duration-200">
                     {MODELS.map((m) => (
                       <button
                         key={m.id}
                         onClick={() => { setSelectedModel(m.id); setModelDropdownOpen(false); }}
                         className={cn(
-                          "w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-white/5",
+                          "w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-white",
                           selectedModel === m.id && "bg-violet-500/10"
                         )}
                       >
                         <Image src={m.logo} alt={m.label} width={24} height={24} className="object-contain w-6 h-6 rounded-md" unoptimized />
                         <div className="flex-1 min-w-0">
-                          <p className={cn("text-sm font-medium truncate", selectedModel === m.id ? "text-violet-300" : "text-white")}>{m.label}</p>
+                          <p className={cn("text-sm font-medium truncate", selectedModel === m.id ? "text-violet-300" : "text-slate-900")}>{m.label}</p>
                         </div>
-                        {m.tag && <span className="bg-white/10 text-slate-300 text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0">{m.tag}</span>}
+                        {m.tag && <span className="bg-white/10 text-slate-600 text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0">{m.tag}</span>}
                       </button>
                     ))}
                   </div>
@@ -468,10 +468,10 @@ export default function TextToImageClient() {
 
             <div>
                <div className="flex items-center justify-between mb-4">
-                 <h3 className="text-sm font-medium text-white">Aspect Ratio</h3>
+                 <h3 className="text-sm font-medium text-slate-900">Aspect Ratio</h3>
                  <span className="text-xs text-slate-500">{aspectRatio}</span>
                </div>
-               <div className="grid grid-cols-5 gap-1.5 p-1 bg-white/[0.02] border border-white/5 rounded-xl">
+               <div className="grid grid-cols-5 gap-1.5 p-1 bg-white border border-slate-200 rounded-xl">
                  {ASPECT_RATIOS.map(r => (
                    <button
                      key={r}
@@ -479,8 +479,8 @@ export default function TextToImageClient() {
                      className={cn(
                        "py-2 rounded-lg text-xs font-medium transition-all flex flex-col items-center gap-1.5",
                        aspectRatio === r
-                         ? "bg-white/10 text-white shadow-sm"
-                         : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                         ? "bg-white/10 text-slate-900 shadow-sm"
+                         : "text-slate-500 hover:text-slate-800 hover:bg-white"
                      )}
                    >
                      <div className={cn(
@@ -500,13 +500,13 @@ export default function TextToImageClient() {
             
           </div>
 
-          <div className="p-6 border-t border-white/5 bg-[#0a0a0c]">
+          <div className="p-6 border-t border-slate-200 bg-white">
             {status === "authenticated" && credits !== null && (
               <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-1.5">
                   <Flame className="h-3.5 w-3.5 text-orange-400" />
-                  <span className="text-xs text-slate-300">
-                    <span className="font-semibold text-white">{Math.floor((credits ?? 0) / 100)}</span> credits
+                  <span className="text-xs text-slate-600">
+                    <span className="font-semibold text-slate-900">{Math.floor((credits ?? 0) / 100)}</span> credits
                   </span>
                 </div>
                 <button
@@ -530,8 +530,8 @@ export default function TextToImageClient() {
               className={cn(
                 "relative w-full rounded-2xl py-4 text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden",
                 !prompt.trim() || isGenerating
-                  ? "cursor-not-allowed bg-white/5 text-slate-500"
-                  : "bg-white text-black hover:scale-[1.02] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)]"
+                  ? "cursor-not-allowed bg-white text-slate-500"
+                  : "bg-slate-900 text-white hover:scale-[1.02] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.5)]"
               )}
             >
               {!prompt.trim() || isGenerating ? null : (
@@ -539,7 +539,7 @@ export default function TextToImageClient() {
               )}
               
               {isGenerating ? (
-                <><RefreshCw className="h-4 w-4 animate-spin text-slate-400" />Generating...</>
+                <><RefreshCw className="h-4 w-4 animate-spin text-slate-500" />Generating...</>
               ) : (
                 <><Sparkles className="h-4 w-4" />Generate Image</>
               )}
@@ -561,7 +561,7 @@ export default function TextToImageClient() {
           onClick={() => setLightboxImage(null)}
         >
           <button
-            className="absolute right-5 top-5 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 transition-all border border-white/10 z-[70]"
+            className="absolute right-5 top-5 rounded-full bg-white/10 p-3 text-slate-900 hover:bg-white/20 transition-all border border-slate-200 z-[70]"
             onClick={() => setLightboxImage(null)}
           >
             <X className="h-5 w-5" />

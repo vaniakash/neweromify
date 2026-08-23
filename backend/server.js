@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const generateVideoRoute    = require("./routes/generate-video");
 const mcpInternalVideoRoute = require("./routes/mcp-internal-video");
+const motionControlRoute    = require("./routes/motion-control");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,8 +45,9 @@ app.get("/health", (req, res) => {
 });
 
 // ── Routes ────────────────────────────────────────────────────────────────────
-app.use("/generate-video",         generateVideoRoute);
+app.use("/generate-video",             generateVideoRoute);
 app.use("/mcp-internal/generate-video", mcpInternalVideoRoute);
+app.use("/motion-control",              motionControlRoute);
 
 // ── 404 handler ──────────────────────────────────────────────────────────────
 app.use((req, res) => {

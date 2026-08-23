@@ -88,7 +88,7 @@ export function AIPromoModal({ isOpen, onClose }: AIPromoModalProps) {
         <div className="px-6 pb-6 -mt-2">
           <h2 className="text-white text-2xl font-black tracking-tight mb-2">
             Generate AI Images
-            <span className="block text-violet-400">for just ₹99</span>
+            <span className="block text-violet-400">for just ₹499</span>
           </h2>
           <p className="text-[#a1a1aa] text-sm leading-relaxed mb-5">
             Access GPT Image 1, FLUX.1, Seedance, Kling & Veo models. Create stunning images and cinematic videos from any prompt — no watermarks, no limits.
@@ -147,7 +147,7 @@ export function AIPromoModal({ isOpen, onClose }: AIPromoModalProps) {
 
           {/* Fine print */}
           <p className="text-center text-[11px] mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>
-            ₹99 one-time · Unlimited generations · No subscription
+            ₹499 one-time · Unlimited generations · No subscription
           </p>
         </div>
       </div>

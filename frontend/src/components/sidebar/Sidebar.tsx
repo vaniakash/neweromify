@@ -24,6 +24,7 @@ import {
   Video,
   ArrowUpToLine,
   Flame,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -103,6 +104,7 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
   const { status } = useSession();
   const [isUserPro, setIsUserPro] = useState(false);
   const [hasErosAccess, setHasErosAccess] = useState(false);
+  const [hasMotionControlAccess, setHasMotionControlAccess] = useState(false);
 
   useEffect(() => {
     const checkPro = () => {
@@ -114,13 +116,17 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
     if (status === "unauthenticated") {
       setIsUserPro(false);
       setHasErosAccess(false);
+      setHasMotionControlAccess(false);
     } else if (status === "authenticated") {
       checkPro();
-      // Check mcpAccess for Eros gate
+      // Check mcpAccess for Eros gate and motionControlAccess for Motion Control gate
       fetch("/api/user/sync-pro")
         .then((r) => r.json())
-        .then((data) => setHasErosAccess(data.mcpAccess === true))
-        .catch(() => setHasErosAccess(false));
+        .then((data) => {
+          setHasErosAccess(data.mcpAccess === true);
+          setHasMotionControlAccess(data.motionControlAccess === true);
+        })
+        .catch(() => { setHasErosAccess(false); setHasMotionControlAccess(false); });
     }
 
     window.addEventListener("eromify_pro_updated", checkPro);
@@ -268,37 +274,6 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
             </span>
           </Link>
 
-          {/* Video — LIVE with NEW badge */}
-          <Link
-            href="/video-generation"
-            onClick={onNavigate}
-            className={cn(
-              "flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium",
-              pathname === "/video-generation"
-                ? "bg-[#1736cf]/10 text-[#1736cf]"
-                : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <Video
-                className={cn(
-                  "h-4 w-4",
-                  pathname === "/video-generation" ? "text-[#1736cf]" : "text-slate-500"
-                )}
-              />
-              <span className="font-medium">Video</span>
-            </div>
-            <span
-              className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide animate-pulse"
-              style={{
-                background: "rgba(16,185,129,0.15)",
-                color: "#10b981",
-                border: "1px solid rgba(16,185,129,0.4)",
-              }}
-            >
-              New
-            </span>
-          </Link>
 
           {/* Upscale — coming soon */}
           <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg cursor-not-allowed select-none">
@@ -310,6 +285,51 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
               Soon
             </span>
           </div>
+
+          {/* Motion Control — Enterprise only for generating */}
+          <Link
+            href="/tools/creator/motion-control"
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium",
+              pathname === "/tools/creator/motion-control"
+                ? "bg-violet-50 text-violet-700 border border-violet-200"
+                : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <Activity
+                className={cn(
+                  "h-4 w-4",
+                  pathname === "/tools/creator/motion-control" ? "text-violet-600" : "text-slate-500"
+                )}
+              />
+              <span className="font-medium">Motion Control</span>
+            </div>
+            {hasMotionControlAccess ? (
+              <span
+                className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide animate-pulse"
+                style={{
+                  background: "rgba(16,185,129,0.15)",
+                  color: "#10b981",
+                  border: "1px solid rgba(16,185,129,0.4)",
+                }}
+              >
+                New
+              </span>
+            ) : (
+              <span
+                className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wide"
+                style={{
+                  background: "rgba(124,58,237,0.1)",
+                  color: "#7c3aed",
+                  border: "1px solid rgba(124,58,237,0.25)",
+                }}
+              >
+                Enterprise
+              </span>
+            )}
+          </Link>
         </div>
       </nav>
 

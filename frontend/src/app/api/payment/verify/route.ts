@@ -126,8 +126,9 @@ export async function POST(request: Request) {
     // ── Grant credits + Pro status ────────────────────────────────────────────
     const userEmail = payment.userEmail ?? email;
     if (userEmail && payment.creditsToAdd) {
-      const hasVideoAccess = ["pro", "mega", "premium"].includes(payment.plan ?? "");
-      const hasMcpAccess   = ["mega", "premium"].includes(payment.plan ?? "");
+      const hasVideoAccess         = ["pro", "mega", "premium"].includes(payment.plan ?? "");
+      const hasMcpAccess           = ["mega", "premium"].includes(payment.plan ?? "");
+      const hasMotionControlAccess = ["premium"].includes(payment.plan ?? "");
 
       const result = await User.updateOne(
         { email: userEmail },
@@ -135,8 +136,9 @@ export async function POST(request: Request) {
           $inc: { credits: payment.creditsToAdd },
           $set: {
             isPro: true,
-            ...(hasVideoAccess && { videoAccess: true }),
-            ...(hasMcpAccess   && { mcpAccess:   true  }),
+            ...(hasVideoAccess         && { videoAccess:         true }),
+            ...(hasMcpAccess           && { mcpAccess:           true }),
+            ...(hasMotionControlAccess && { motionControlAccess: true }),
           },
         }
       );
