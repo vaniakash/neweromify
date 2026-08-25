@@ -4,10 +4,11 @@ import { useState, useRef, useCallback, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { Wand2, ImagePlus, Layers, Download, RefreshCw, X,
   Sparkles, AlertCircle, Clock, ChevronRight, Zap,
-  Eye, Trash2, Copy, Check, Images, Lock,
+  Eye, Trash2, Copy, Check, Images, Lock, AtSign,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { ImageGenPayModal } from "@/components/ImageGenPayModal";
+import { useAvatarStore } from "@/lib/store/avatarStore";
 
 type Mode = "text2img" | "edit" | "multiref";
 
@@ -68,6 +69,7 @@ function UploadBox({ label, file, preview, onFile, onClear, id }: {
 
 function AIInfluencerInner() {
   const { data: session, status } = useSession();
+  const { avatars } = useAvatarStore();
   const [mode, setMode] = useState<Mode>("text2img");
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -75,6 +77,56 @@ function AIInfluencerInner() {
   const [lastResult, setLastResult] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+  // Avatar @mention state
+  const [activeAvatarId, setActiveAvatarId] = useState<string | null>(null);
+
+  // Auto-detect @mention in prompt and inject avatar reference
+  const handlePromptChange = (val: string) => {
+    setPrompt(val);
+    const match = val.match(/@([\w]+)/g);
+    if (match) {
+      for (const tag of match) {
+        const slug = tag.slice(1).toLowerCase();
+        const found = avatars.find((a) => {
+          const aSlug = (a.username?.replace('@','') || a.name).toLowerCase().replace(/\s+/g,'');
+          return aSlug === slug || a.name.toLowerCase().replace(/\s+/g,'') === slug;
+        });
+        if (found) {
+          setActiveAvatarId(found.id);
+          if (found.baseImage) {
+            // inject as ref1 preview
+            setRef1Preview(found.baseImage);
+            // convert URL to File-like by fetching isn't needed — we pass URL directly via state
+            setAvatarRefUrl(found.baseImage);
+            setMode("multiref");
+          }
+          return;
+        }
+      }
+    }
+    // No match found — clear avatar ref only if user removed the tag
+    if (!val.includes('@')) {
+      setActiveAvatarId(null);
+      setAvatarRefUrl(null);
+    }
+  };
+
+  const [avatarRefUrl, setAvatarRefUrl] = useState<string | null>(null);
+
+  const injectAvatar = (avatar: typeof avatars[0]) => {
+    const tag = avatar.username?.startsWith('@') ? avatar.username : `@${avatar.name.toLowerCase().replace(/\s+/g,'')}`;
+    setPrompt((prev) => {
+      // remove any existing @tags then append this one
+      const cleaned = prev.replace(/@[\w.]+/g, '').trim();
+      return `${tag} ${cleaned}`.trim();
+    });
+    setActiveAvatarId(avatar.id);
+    if (avatar.baseImage) {
+      setRef1Preview(avatar.baseImage);
+      setAvatarRefUrl(avatar.baseImage);
+      setMode("multiref");
+    }
+  };
 
   const searchParams = useSearchParams();
   const [payModal, setPayModal] = useState<{ open: boolean; mode: "login" | "payment" }>({ open: false, mode: "payment" });
@@ -85,6 +137,24 @@ function AIInfluencerInner() {
       setPayModal({ open: true, mode: status === "authenticated" ? "payment" : "login" });
     }
   }, [searchParams, status]);
+
+  // Auto-inject avatar from URL params (coming from /avatar hub)
+  useEffect(() => {
+    const avatarId = searchParams.get("avatarId");
+    const ref = searchParams.get("ref");
+    if (avatarId && ref && avatars.length > 0) {
+      const av = avatars.find((a) => a.id === avatarId);
+      if (av) {
+        injectAvatar(av);
+      } else if (ref) {
+        // Avatar not in store but ref URL given — just set the image
+        setRef1Preview(ref);
+        setAvatarRefUrl(ref);
+        setMode("multiref");
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, avatars.length]);
 
   const fetchCredits = useCallback(async () => {
     if (status !== "authenticated") return;
@@ -135,7 +205,7 @@ function AIInfluencerInner() {
   const handleGenerate = async () => {
     if (!prompt.trim() || isGenerating) return;
     if (mode === "edit" && !editFile) { setError("Upload a source image for edit mode."); return; }
-    if (mode === "multiref" && !ref1File) { setError("Upload at least one reference image."); return; }
+    if (mode === "multiref" && !ref1File && !avatarRefUrl) { setError("Upload at least one reference image."); return; }
 
     if (credits !== null && credits < 5) {
       setPayModal({ open: true, mode: "payment" });
@@ -145,9 +215,24 @@ function AIInfluencerInner() {
     setIsGenerating(true); setError(null);
     try {
       const fd = new FormData();
-      fd.append("mode", mode); fd.append("prompt", prompt.trim());
-      if (mode === "edit" && editFile) fd.append("image", editFile);
-      if (mode === "multiref") { if (ref1File) fd.append("ref1", ref1File); if (ref2File) fd.append("ref2", ref2File); }
+      // If avatar ref URL is set, fetch and attach as blob
+      let effectiveMode = mode;
+      let ref1Blob: Blob | null = null;
+      if (avatarRefUrl && mode === "multiref") {
+        try {
+          const resp = await fetch(avatarRefUrl);
+          ref1Blob = await resp.blob();
+        } catch { /* ignore, fall back to text2img */ }
+      }
+      if (ref1Blob) { effectiveMode = "multiref"; }
+
+      fd.append("mode", effectiveMode); fd.append("prompt", prompt.trim());
+      if (effectiveMode === "edit" && editFile) fd.append("image", editFile);
+      if (effectiveMode === "multiref") {
+        if (ref1Blob) fd.append("ref1", ref1Blob, "avatar-ref.jpg");
+        else if (ref1File) fd.append("ref1", ref1File);
+        if (ref2File) fd.append("ref2", ref2File);
+      }
       const res = await fetch("/api/influencer-generate", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
@@ -203,35 +288,6 @@ function AIInfluencerInner() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-md shadow-violet-200">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-sm font-black text-slate-900">AI Influencer Creator</h1>
-              <p className="text-[10px] text-slate-400">High-quality AI · Saved to your gallery</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {status === "authenticated" && credits !== null && (
-              <div className="flex items-center gap-2 mr-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700">
-                <span className="text-violet-500">⚡</span>
-                <span className="hidden sm:inline">Credits:</span> <span className="text-violet-600">{credits}</span>
-                <button onClick={() => setPayModal({ open: true, mode: "payment" })} className="ml-1 rounded bg-violet-100 hover:bg-violet-200 px-2 py-0.5 transition text-[10px] text-violet-700">Buy</button>
-              </div>
-            )}
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs text-slate-400">AI Online</span>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
         {/* Generator Panel */}
         <div className="grid lg:grid-cols-[400px_1fr] gap-8">
@@ -287,10 +343,47 @@ function AIInfluencerInner() {
               </div>
             )}
 
+            {/* Avatar @mention pills */}
+            {avatars.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <AtSign className="w-3 h-3" /> Tag Avatar
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {avatars.map((av) => {
+                    const tag = av.username?.startsWith('@') ? av.username : `@${av.name.toLowerCase().replace(/\s+/g,'')}`;
+                    const isActive = activeAvatarId === av.id;
+                    return (
+                      <button
+                        key={av.id}
+                        type="button"
+                        onClick={() => isActive ? (setActiveAvatarId(null), setAvatarRefUrl(null), setPrompt(p => p.replace(/@[\w.]+/g,'').trim())) : injectAvatar(av)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all ${
+                          isActive
+                            ? 'border-violet-500 bg-violet-500/10 text-violet-300 shadow shadow-violet-500/20'
+                            : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:text-violet-600'
+                        }`}
+                      >
+                        {av.baseImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={av.baseImage} alt={av.name} className="w-4 h-4 rounded-full object-cover" />
+                        )}
+                        {tag}
+                        {isActive && <Check className="w-3 h-3" />}
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeAvatarId && (
+                  <p className="text-[10px] text-violet-500">✓ Avatar image set as reference — generates in her likeness</p>
+                )}
+              </div>
+            )}
+
             {/* Prompt */}
             <div className="space-y-2">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Prompt</p>
-              <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Describe your AI influencer…" rows={4}
+              <textarea value={prompt} onChange={(e) => handlePromptChange(e.target.value)} placeholder="Describe your AI influencer… (or tag @sofia above)" rows={4}
                 className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-300 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition" />
               <div className="space-y-1">
                 <p className="text-[10px] text-slate-400 uppercase tracking-wider">Examples:</p>

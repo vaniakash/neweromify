@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { Users, ChevronRight, Plus, Star, Sparkles, ArrowRight, Trash2, Edit2 } from "lucide-react";
+import { Users, Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { useAvatarStore } from "@/lib/store/avatarStore";
 import { CreateAvatarModal } from "./CreateAvatarModal";
 import { useRouter } from "next/navigation";
@@ -13,9 +12,13 @@ export function AvatarHubClient() {
   const { avatars, deleteAvatar } = useAvatarStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Fallback avatars like Sofia if store is completely empty, 
-  // but to match user screenshots, we should show empty state if no avatars exist.
-  
+  const goToCreator = (avatarId: string, baseImage: string | null) => {
+    const url = baseImage
+      ? `/tools/creator/ai-influencer?avatarId=${avatarId}&ref=${encodeURIComponent(baseImage)}`
+      : `/tools/creator/ai-influencer?avatarId=${avatarId}`;
+    router.push(url);
+  };
+
   if (avatars.length === 0) {
     return (
       <div className="flex flex-col min-h-full bg-slate-50">
@@ -23,9 +26,9 @@ export function AvatarHubClient() {
         <div className="px-8 py-8 flex items-center justify-between border-b border-slate-200">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 mb-1">Avatars</h1>
-            <p className="text-slate-500 text-sm">Manage your AI avatars and their content library</p>
+            <p className="text-slate-500 text-sm">Create an AI avatar and generate content with her @tag</p>
           </div>
-          <button 
+          <button
             onClick={() => setIsCreateModalOpen(true)}
             className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-900 rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors border border-slate-200"
           >
@@ -36,26 +39,22 @@ export function AvatarHubClient() {
 
         {/* Empty State */}
         <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <div className="w-full max-w-2xl border border-slate-200 rounded-3xl bg-white flex flex-col items-center justify-center py-24 shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#1736cf]/5 to-transparent opacity-50" />
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="w-16 h-16 mb-4 text-slate-500">
-                <Users className="w-full h-full" strokeWidth={1.5} />
-              </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">No influencers yet</h2>
-              <p className="text-slate-500 text-sm mb-6">Create your first AI influencer to start building content.</p>
-              
-              <button 
-                onClick={() => setIsCreateModalOpen(true)}
-                className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/25"
-              >
-                <Plus className="w-4 h-4" />
-                Create New
-              </button>
+          <div className="w-full max-w-md border border-slate-200 rounded-3xl bg-white flex flex-col items-center justify-center py-20 shadow-xl">
+            <div className="w-14 h-14 mb-5 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center">
+              <Users className="w-7 h-7 text-violet-400" strokeWidth={1.5} />
             </div>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">No avatars yet</h2>
+            <p className="text-slate-500 text-sm mb-7 text-center max-w-xs">Create an avatar, then tag her with <span className="font-mono font-bold text-violet-600">@name</span> in the AI creator to generate her images.</p>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/25"
+            >
+              <Plus className="w-4 h-4" />
+              Create First Avatar
+            </button>
           </div>
         </div>
-        
+
         <CreateAvatarModal open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
       </div>
     );
@@ -67,9 +66,9 @@ export function AvatarHubClient() {
       <div className="px-8 py-8 flex items-center justify-between border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 mb-1">Avatars</h1>
-          <p className="text-slate-500 text-sm">Manage your AI avatars and their content library</p>
+          <p className="text-slate-500 text-sm">Tag your avatars with <span className="font-mono font-bold text-violet-600">@name</span> in the AI creator</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsCreateModalOpen(true)}
           className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-lg text-sm font-semibold flex items-center gap-2 transition-colors shadow-lg shadow-indigo-500/25"
         >
@@ -80,83 +79,75 @@ export function AvatarHubClient() {
 
       {/* Avatars Grid */}
       <div className="flex-1 max-w-screen-xl mx-auto w-full px-8 py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-          {avatars.map((avatar) => (
-            <div
-              key={avatar.id}
-              className="group block rounded-[24px] border border-slate-200 overflow-hidden bg-white hover:border-[#1736cf]/40 hover:shadow-2xl hover:shadow-[#1736cf]/10 transition-all duration-500 relative"
-            >
-              <div className="absolute top-4 left-4 z-20">
-                <button className="w-8 h-8 rounded-lg bg-white/80 backdrop-blur-md border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors">
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 rounded-full bg-current" />
-                    <div className="w-1 h-1 rounded-full bg-current" />
-                    <div className="w-1 h-1 rounded-full bg-current" />
-                  </div>
-                </button>
-              </div>
-
-              {/* Image Container */}
-              <div 
-                className="aspect-[4/5] w-full relative overflow-hidden bg-slate-100 flex items-center justify-center cursor-pointer"
-                onClick={() => router.push(`/avatar/${avatar.id}`)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          {avatars.map((avatar) => {
+            const tag = avatar.username?.startsWith('@') ? avatar.username : `@${avatar.name.toLowerCase()}`;
+            return (
+              <div
+                key={avatar.id}
+                className="group relative rounded-2xl border border-slate-200 overflow-hidden bg-white hover:border-violet-300 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300"
               >
-                {avatar.baseImage ? (
-                  <>
-                    <Image
-                      src={avatar.baseImage}
-                      alt={avatar.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500" />
-                  </>
-                ) : (
-                  <div className="w-24 h-24 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shadow-2xl">
-                    <span className="text-4xl font-bold text-violet-400">{avatar.name.charAt(0).toUpperCase()}</span>
-                  </div>
-                )}
-              </div>
+                {/* Image */}
+                <div className="aspect-[3/4] w-full relative overflow-hidden bg-slate-100 flex items-center justify-center">
+                  {avatar.baseImage ? (
+                    <>
+                      <Image
+                        src={avatar.baseImage}
+                        alt={avatar.name}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    </>
+                  ) : (
+                    <span className="text-5xl font-bold text-violet-300">{avatar.name.charAt(0).toUpperCase()}</span>
+                  )}
 
-              {/* Info Bottom Bar */}
-              <div className="p-5 bg-white absolute bottom-0 left-0 w-full">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-slate-900 text-xl font-bold tracking-tight">
-                      {avatar.name}
-                    </h2>
-                    <p className="text-slate-500 text-sm">
-                      {avatar.username || `@${avatar.name.toLowerCase()}.ai`}
-                    </p>
+                  {/* Tag badge */}
+                  <div className="absolute bottom-2 left-2">
+                    <span className="text-xs font-mono font-bold text-white bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                      {tag}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button className="text-slate-500 hover:text-slate-900 transition-colors">
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if(confirm('Are you sure you want to delete this avatar?')) {
-                          deleteAvatar(avatar.id);
-                        }
-                      }}
-                      className="text-slate-500 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+
+                  {/* Delete */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete ${avatar.name}?`)) deleteAvatar(avatar.id);
+                    }}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-slate-300 hover:text-red-400 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => router.push(`/avatar/${avatar.id}`)}
-                  className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-900 font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4 text-violet-400" />
-                  View Content
-                </button>
+
+                {/* Footer */}
+                <div className="p-3">
+                  <p className="text-slate-900 font-bold text-sm mb-2 truncate">{avatar.name}</p>
+                  <button
+                    onClick={() => goToCreator(avatar.id, avatar.baseImage)}
+                    className="w-full py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-500/20 flex items-center justify-center gap-1.5"
+                  >
+                    <Wand2 className="w-3.5 h-3.5" />
+                    Generate
+                  </button>
+                </div>
               </div>
+            );
+          })}
+
+          {/* Add new card */}
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-violet-400 hover:bg-violet-50/30 aspect-[3/4] flex flex-col items-center justify-center gap-3 text-slate-400 hover:text-violet-500 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-xl border-2 border-current flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="w-5 h-5" />
             </div>
-          ))}
+            <span className="text-sm font-semibold">Add Avatar</span>
+          </button>
         </div>
       </div>
 

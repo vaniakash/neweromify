@@ -1,10 +1,31 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Send, CheckCircle, AlertCircle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function HelpPage() {
+  const { status: sessionStatus } = useSession();
+  const [isUserPro, setIsUserPro] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkPro = () => {
+      const pro = localStorage.getItem("eromify_pro");
+      setIsUserPro(pro === "true");
+    };
+
+    if (sessionStatus === "unauthenticated") {
+      setIsUserPro(false);
+    } else if (sessionStatus === "authenticated") {
+      checkPro();
+    }
+
+    window.addEventListener("eromify_pro_updated", checkPro);
+    return () => window.removeEventListener("eromify_pro_updated", checkPro);
+  }, [sessionStatus]);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -109,7 +130,26 @@ export default function HelpPage() {
                 <h2 className="text-xl font-bold text-slate-900">Contact Us</h2>
               </div>
 
-              {status === 'success' ? (
+              {isUserPro === null ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="w-8 h-8 border-4 border-[#1736cf]/20 border-t-[#1736cf] rounded-full animate-spin" />
+                </div>
+              ) : !isUserPro ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-8 text-center flex flex-col items-center">
+                  <div className="bg-amber-100 p-3 rounded-full mb-4">
+                    <Lock className="h-8 w-8 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Premium Support</h3>
+                  <p className="text-slate-600 text-sm mb-6 max-w-sm">
+                    Direct messaging is exclusively available for Pro subscribers. Upgrade your account to unlock priority support.
+                  </p>
+                  <Link href="/pricing" className="w-full">
+                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-medium">
+                      Upgrade to Pro
+                    </Button>
+                  </Link>
+                </div>
+              ) : status === 'success' ? (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-6 text-center">
                   <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
                   <h3 className="text-lg font-bold text-emerald-900 mb-2">Message Sent!</h3>
