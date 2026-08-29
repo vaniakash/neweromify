@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
       let result;
       switch (toolName) {
         case "list_avatars":
-          result = await executeListAvatars(toolArgs as Parameters<typeof executeListAvatars>[0]);
+          result = await executeListAvatars({} as never, userCtx);
           break;
         case "generate_image":
           result = await executeGenerateImage(toolArgs as unknown as Parameters<typeof executeGenerateImage>[0], userCtx);
