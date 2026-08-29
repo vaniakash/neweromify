@@ -31,6 +31,7 @@ export default function PrivacyPolicyPage() {
     { id: "cookies", label: "Cookies & Tracking" },
     { id: "third-party", label: "Third-Party Services" },
     { id: "data-security", label: "Data Security" },
+    { id: "data-retention", label: "Data Retention & Safety Violations" },
     { id: "user-rights", label: "User Rights" },
     { id: "policy-changes", label: "Changes to Policy" },
     { id: "contact", label: "Contact Information" },
@@ -239,9 +240,21 @@ export default function PrivacyPolicyPage() {
               </p>
             </section>
 
+            <section id="data-retention" className="mb-10">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
+                7. Data Retention & Safety Violations
+              </h2>
+              <p className="text-slate-600 mb-4 leading-relaxed">
+                We retain your personal information for as long as your account is active or as needed to provide you services. However, in cases of severe policy violations—such as the creation or attempted creation of Non-Consensual Intimate Imagery (NCII), deepfakes of real people, or content involving minors—we may retain relevant data indefinitely.
+              </p>
+              <p className="text-slate-600 mb-4 leading-relaxed">
+                This retained data (which may include IP addresses, generation logs, and account details) may be used for internal security investigations, preventing future platform abuse, and may be disclosed to law enforcement or other relevant authorities in compliance with our legal obligations.
+              </p>
+            </section>
+
             <section id="user-rights" className="mb-10">
               <h2 className="text-2xl font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
-                7. User Rights
+                8. User Rights
               </h2>
               <p className="text-slate-600 mb-4 leading-relaxed">
                 Depending on your location, you may have the following rights

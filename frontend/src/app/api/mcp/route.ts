@@ -21,6 +21,7 @@ import {
   ALL_TOOL_DEFINITIONS,
   executeListAvatars,
   executeGenerateImage,
+  executeGenerateAvatarPost,
   executeGenerateVideo,
   executeGetCreditBalance,
 } from "@/lib/mcp-tools";
@@ -262,6 +263,9 @@ export async function POST(request: NextRequest) {
           break;
         case "generate_image":
           result = await executeGenerateImage(toolArgs as unknown as Parameters<typeof executeGenerateImage>[0], userCtx);
+          break;
+        case "generate_avatar_post":
+          result = await executeGenerateAvatarPost(toolArgs as unknown as Parameters<typeof executeGenerateAvatarPost>[0], userCtx);
           break;
         case "generate_video":
           result = await executeGenerateVideo(toolArgs as unknown as Parameters<typeof executeGenerateVideo>[0], userCtx);

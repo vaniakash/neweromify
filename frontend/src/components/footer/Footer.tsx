@@ -59,7 +59,7 @@ export function Footer() {
           <div className="mt-8 border-t border-white/10" />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-12 lg:gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-12 lg:gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
             <Link href="/" className="flex items-center gap-3 mb-6 group w-fit">
@@ -101,7 +101,7 @@ export function Footer() {
             <ul className="space-y-4 text-sm text-slate-400">
               {[
                 { name: "About Us", href: "/about" },
-                { name: "Contact", href: "#" },
+                { name: "Contact", href: "/help" },
                 { name: "Affiliates", href: "#" },
                 { name: "Blog", href: "/blog" },
               ].map((item) => (
@@ -118,8 +118,36 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Legal & Safety */}
+          <div className="col-span-1">
+            <h6 className="font-bold text-white tracking-wider uppercase text-xs mb-6">Legal & Safety</h6>
+            <ul className="space-y-4 text-sm text-slate-400">
+              {[
+                { name: "Terms of Service", href: "/terms" },
+                { name: "Privacy Policy", href: "/privacy" },
+                { name: "Acceptable Use Policy", href: "/acceptable-use" },
+                { name: "18+ / Adult Content", href: "/adult-content" },
+                { name: "AI Safety Policy", href: "/ai-safety" },
+                { name: "Copyright Policy", href: "/copyright" },
+                { name: "Report Abuse / NCII", href: "/report-abuse" },
+                { name: "Grievance Redressal", href: "/grievance-redressal" },
+                { name: "Cookie Policy", href: "/cookie-policy" },
+              ].map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className="group flex items-center gap-2 hover:text-white transition-colors"
+                  >
+                    <ArrowRight className="h-3 w-3 opacity-0 -ml-5 group-hover:opacity-100 group-hover:ml-0 text-[#1736cf] transition-all duration-300" />
+                    <span>{item.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {/* AI Influencer Tools */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-1">
+          <div className="col-span-1">
             <h6 className="font-bold text-white tracking-wider uppercase text-xs mb-6">AI Influencer Tools</h6>
             <ul className="space-y-4 text-sm text-slate-400">
               {[

@@ -5,21 +5,24 @@
  * Exports the full tools/list array and the dispatcher map.
  */
 
-export { listAvatarsDefinition,     executeListAvatars     } from "./list-avatars";
-export { generateImageDefinition,   executeGenerateImage   } from "./generate-image";
-export { generateVideoDefinition,   executeGenerateVideo   } from "./generate-video";
-export { getCreditBalanceDefinition, executeGetCreditBalance } from "./get-credit-balance";
+export { listAvatarsDefinition,           executeListAvatars           } from "./list-avatars";
+export { generateImageDefinition,         executeGenerateImage         } from "./generate-image";
+export { generateVideoDefinition,         executeGenerateVideo         } from "./generate-video";
+export { getCreditBalanceDefinition,      executeGetCreditBalance      } from "./get-credit-balance";
+export { generateAvatarPostDefinition,    executeGenerateAvatarPost    } from "./generate-avatar-post";
 
-import { listAvatarsDefinition }      from "./list-avatars";
-import { generateImageDefinition }    from "./generate-image";
-import { generateVideoDefinition }    from "./generate-video";
-import { getCreditBalanceDefinition } from "./get-credit-balance";
-import type { McpToolDefinition }     from "./types";
+import { listAvatarsDefinition }         from "./list-avatars";
+import { generateImageDefinition }       from "./generate-image";
+import { generateVideoDefinition }       from "./generate-video";
+import { getCreditBalanceDefinition }    from "./get-credit-balance";
+import { generateAvatarPostDefinition }  from "./generate-avatar-post";
+import type { McpToolDefinition }        from "./types";
 
 /** All tool definitions returned by tools/list */
 export const ALL_TOOL_DEFINITIONS: McpToolDefinition[] = [
   listAvatarsDefinition,
   generateImageDefinition,
+  generateAvatarPostDefinition,
   generateVideoDefinition,
   getCreditBalanceDefinition,
 ];
@@ -28,6 +31,7 @@ export const ALL_TOOL_DEFINITIONS: McpToolDefinition[] = [
 export type MCP_TOOL_NAME =
   | "list_avatars"
   | "generate_image"
+  | "generate_avatar_post"
   | "generate_video"
   | "get_credit_balance";
 

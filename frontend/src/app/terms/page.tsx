@@ -31,9 +31,10 @@ export default function TermsOfServicePage() {
     { id: "registration", label: "Account Registration" },
     { id: "ip", label: "Intellectual Property" },
     { id: "prohibited", label: "Prohibited Activities" },
+    { id: "content-rules", label: "Content Generation Rules" },
     { id: "availability", label: "Service Availability" },
     { id: "liability", label: "Limitation of Liability" },
-    { id: "termination", label: "Termination" },
+    { id: "termination", label: "Termination & Enforcement" },
     { id: "law", label: "Governing Law" },
     { id: "contact", label: "Contact Information" },
   ];
@@ -297,10 +298,46 @@ export default function TermsOfServicePage() {
                 <div className="p-4 rounded-lg border border-slate-100">
                   <h3 className="font-bold mb-2">Spamming</h3>
                   <p className="text-sm text-slate-500">
-                    Transmission of any &apos;spam&apos;, &apos;junk mail&apos;, or similar
+                    Transmission of any 'spam', 'junk mail', or similar
                     solicitation is forbidden.
                   </p>
                 </div>
+              </div>
+            </section>
+
+            {/* Section: Content Generation Rules */}
+            <section
+              className="scroll-mt-24 bg-white rounded-xl border border-red-100 p-8 shadow-sm relative overflow-hidden"
+              id="content-rules"
+            >
+              <div className="absolute top-0 left-0 w-1 h-full bg-red-500"></div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600 font-bold text-xl">
+                  !
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">Content Generation Rules & Safety</h2>
+              </div>
+              <div className="space-y-4 text-slate-600">
+                <p className="font-medium text-slate-800">The following rules strictly govern the use of our AI generation tools. Violations will result in immediate, permanent account termination.</p>
+                
+                <ul className="list-disc pl-5 space-y-3">
+                  <li>
+                    <strong className="text-slate-800">No Real-Person Manipulation:</strong> Users must not upload, morph, face-swap, sexualize, or generate altered sexual/intimate content involving a real person without their explicit, verifiable consent. Deepfakes and non-consensual intimate imagery (NCII) are strictly prohibited.
+                  </li>
+                  <li>
+                    <strong className="text-slate-800">No Minors:</strong> Sexual or explicit content involving anyone under 18 is strictly prohibited, including real, AI-generated, fictional, or ambiguous/young-looking persons.
+                  </li>
+                  <li>
+                    <strong className="text-slate-800">AI Characters Only:</strong> Adult-content features are limited strictly to AI-generated influencers and fictional characters created through our platform that comply with our policies.
+                  </li>
+                  <li>
+                    <strong className="text-slate-800">No Impersonation:</strong> Do not use the platform to impersonate real people or public figures.
+                  </li>
+                </ul>
+
+                <p className="mt-4 text-sm bg-red-50 p-4 rounded-lg border border-red-100 text-red-800">
+                  <strong>Reporting Abuse:</strong> We employ automated moderation checks to detect prohibited requests. If you discover a violation, use our <Link href="/report-abuse" className="underline font-bold">Report Abuse / NCII</Link> page immediately.
+                </p>
               </div>
             </section>
 
@@ -311,7 +348,7 @@ export default function TermsOfServicePage() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1736cf]/10 text-[#1736cf] font-bold text-xl">
-                  7
+                  {navLinks.findIndex(l => l.id === 'availability') + 1}
                 </div>
                 <h2 className="text-2xl font-bold">Service Availability</h2>
               </div>
@@ -330,7 +367,7 @@ export default function TermsOfServicePage() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1736cf]/10 text-[#1736cf] font-bold text-xl">
-                  8
+                  {navLinks.findIndex(l => l.id === 'liability') + 1}
                 </div>
                 <h2 className="text-2xl font-bold">Limitation of Liability</h2>
               </div>
@@ -350,15 +387,18 @@ export default function TermsOfServicePage() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1736cf]/10 text-[#1736cf] font-bold text-xl">
-                  9
+                  {navLinks.findIndex(l => l.id === 'termination') + 1}
                 </div>
-                <h2 className="text-2xl font-bold">Termination</h2>
+                <h2 className="text-2xl font-bold">Termination & Enforcement</h2>
               </div>
               <p className="text-slate-600 leading-relaxed">
                 We may terminate or suspend your account and bar access to the
                 service immediately, without prior notice or liability, under our
                 sole discretion, for any reason whatsoever and without limitation,
                 including but not limited to a breach of the Terms.
+              </p>
+              <p className="text-slate-600 leading-relaxed mt-4 font-medium text-red-600">
+                If a user is found creating or attempting to create prohibited content (including NCII, deepfakes of real people, or content involving minors), their account will be <strong>permanently terminated</strong> without refund, the content will be removed, and the incident may be reported to relevant authorities.
               </p>
             </section>
 
@@ -369,7 +409,7 @@ export default function TermsOfServicePage() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1736cf]/10 text-[#1736cf] font-bold text-xl">
-                  10
+                  {navLinks.findIndex(l => l.id === 'law') + 1}
                 </div>
                 <h2 className="text-2xl font-bold">Governing Law</h2>
               </div>
@@ -388,7 +428,7 @@ export default function TermsOfServicePage() {
             >
               <div className="flex items-center gap-4 mb-6">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1736cf]/10 text-[#1736cf] font-bold text-xl">
-                  11
+                  {navLinks.findIndex(l => l.id === 'contact') + 1}
                 </div>
                 <h2 className="text-2xl font-bold">Contact Information</h2>
               </div>

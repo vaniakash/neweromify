@@ -6,7 +6,7 @@ import { MongoClient, ServerApiVersion } from "mongodb";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import bcrypt from "bcryptjs";
-
+import { authConfig } from "./auth.config";
 // ── MongoDB client for adapter ────────────────────────────────────────────────
 const uri = process.env.MONGODB_URI as string;
 const options = {
@@ -36,6 +36,7 @@ if (process.env.NODE_ENV === "development") {
 
 // ── NextAuth config ───────────────────────────────────────────────────────────
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: MongoDBAdapter(clientPromise),
   providers: [
     Google({
@@ -101,18 +102,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
-  callbacks: {
-    async session({ session, token }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
 });
