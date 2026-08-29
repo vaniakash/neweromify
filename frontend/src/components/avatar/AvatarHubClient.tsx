@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Users, Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { useAvatarStore } from "@/lib/store/avatarStore";
@@ -11,6 +11,26 @@ export function AvatarHubClient() {
   const router = useRouter();
   const { avatars, deleteAvatar } = useAvatarStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Sync all localStorage avatars to MongoDB on mount so MCP can access them.
+  // This runs once per page load and is a no-op if already synced (upsert).
+  useEffect(() => {
+    const avatarsWithImages = avatars.filter((a) => a.baseImage);
+    if (avatarsWithImages.length === 0) return;
+    avatarsWithImages.forEach((avatar) => {
+      fetch('/api/user/avatars', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId:  avatar.id,
+          name:      avatar.name,
+          username:  avatar.username,
+          baseImage: avatar.baseImage,
+        }),
+      }).catch(() => {}); // fire-and-forget, non-fatal
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // only on mount
 
   const goToCreator = (avatarId: string, baseImage: string | null) => {
     const url = baseImage
