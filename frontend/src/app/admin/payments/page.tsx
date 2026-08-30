@@ -24,7 +24,7 @@ export default async function AdminPaymentsPage() {
   ]);
 
   const byStatus: Record<string, { total: number; count: number }> = {};
-  for (const r of revenueAgg) byStatus[r._id] = { total: r.total / 100, count: r.count };
+  for (const r of revenueAgg) byStatus[r._id] = { total: r.total, count: r.count };
 
   const paidRevenue    = byStatus["paid"]?.total    ?? 0;
   const pendingRevenue = byStatus["created"]?.total ?? 0;
@@ -201,7 +201,7 @@ export default async function AdminPaymentsPage() {
                       </span>
                     </td>
                     <td style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 14 }}>
-                      ₹{(p.amount / 100).toLocaleString("en-IN")}
+                      ₹{p.amount.toLocaleString("en-IN")}
                     </td>
                     <td>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: s.bg, color: s.color, border: `1px solid ${s.border}`, display: "inline-flex", alignItems: "center", gap: 4 }}>
@@ -261,7 +261,7 @@ export default async function AdminPaymentsPage() {
                       </span>
                     </td>
                     <td style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 14 }}>
-                      ₹{(p.amount / 100).toLocaleString("en-IN")}
+                      ₹{p.amount.toLocaleString("en-IN")}
                     </td>
                     <td>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999, background: s.bg, color: s.color, border: `1px solid ${s.border}`, display: "inline-flex", alignItems: "center", gap: 4 }}>
