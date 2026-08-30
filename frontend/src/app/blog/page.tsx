@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { BlogClient } from "@/components/blog/BlogClient";
 
 export const metadata: Metadata = {
   title: "AI Influencer Blog, AI Avatar Guides & Creator SEO | Eromify",
@@ -15,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  return <BlogClient />;
+  return <div className="min-h-screen bg-slate-50"></div>;
 }

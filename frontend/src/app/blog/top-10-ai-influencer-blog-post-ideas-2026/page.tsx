@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     "AI influencer marketing",
     "Eromify blog",
   ],
-  authors: [{ name: "Akash Rana", url: "https://www.linkedin.com/in/akash-rana-24478421b/" }],
+  authors: [{ name: "Alex" }],
   alternates: {
     canonical: pageUrl,
   },
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     type: "article",
     publishedTime: "2026-05-03T00:00:00.000Z",
     modifiedTime: "2026-05-03T00:00:00.000Z",
-    authors: ["Akash Rana"],
+    authors: ["Alex"],
     tags: ["AI Influencers", "AI Avatar", "Virtual Influencer", "SEO", "Creator Economy"],
     images: [
       {
@@ -172,8 +172,7 @@ export default function TopAiInfluencerBlogIdeasPage() {
       "A practical SEO content roadmap for AI influencer, AI avatar, virtual creator, and AI image generation websites.",
     author: {
       "@type": "Person",
-      name: "Akash Rana",
-      url: "https://www.linkedin.com/in/akash-rana-24478421b/",
+      name: "Alex",
     },
     publisher: {
       "@type": "Organization",
@@ -272,7 +271,7 @@ export default function TopAiInfluencerBlogIdeasPage() {
               </p>
 
               <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500 pb-8 border-b border-slate-200">
-                <span className="flex items-center gap-1.5"><User className="h-4 w-4" /> <span className="font-semibold text-slate-800">Akash Rana</span></span>
+                <span className="flex items-center gap-1.5"><User className="h-4 w-4" /> <span className="font-semibold text-slate-800">Alex</span></span>
                 <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> <time dateTime="2026-05-03">May 3, 2026</time></span>
                 <span className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> 8 min read</span>
               </div>

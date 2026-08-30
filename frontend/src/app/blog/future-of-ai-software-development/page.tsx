@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "GPT code generation",
     "AI and engineers",
   ],
-  authors: [{ name: "Akash Rana", url: "https://www.linkedin.com/in/akash-rana-24478421b/" }],
+  authors: [{ name: "Alex" }],
   openGraph: {
     title: "The Future of AI in Modern Software Development & Engineering",
     description:
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: "Eromify",
     type: "article",
     publishedTime: "2026-03-15T00:00:00.000Z",
-    authors: ["Akash Rana"],
+    authors: ["Alex"],
     tags: ["AI", "Software Engineering", "LLMs", "Developer Tools"],
   },
   twitter: {
@@ -49,8 +49,7 @@ export default function AIFutureBlogPost() {
       "Artificial intelligence, particularly large language models (LLMs), is rapidly reshaping the way modern software is built.",
     author: {
       "@type": "Person",
-      name: "Akash Rana",
-      url: "https://www.linkedin.com/in/akash-rana-24478421b/",
+      name: "Alex",
     },
     publisher: {
       "@type": "Organization",
@@ -127,15 +126,12 @@ export default function AIFutureBlogPost() {
               <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500 pb-8 border-b border-slate-200">
                 <span className="flex items-center gap-1.5">
                   <User className="h-4 w-4" />
-                  <a
-                    href="https://www.linkedin.com/in/akash-rana-24478421b/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-slate-800 hover:text-[#1736cf] transition-colors"
+                  <span
+                    className="font-semibold text-slate-800"
                     itemProp="author"
                   >
-                    Akash Rana
-                  </a>
+                    Alex
+                  </span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
@@ -300,16 +296,8 @@ export default function AIFutureBlogPost() {
                   <User className="h-6 w-6 text-[#1736cf]" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-900">Akash Rana</p>
+                  <p className="text-sm font-bold text-slate-900">Alex</p>
                   <p className="text-xs text-slate-500">Chief Editor · Eromify</p>
-                  <a
-                    href="https://www.linkedin.com/in/akash-rana-24478421b/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-[#1736cf] font-semibold hover:underline"
-                  >
-                    View LinkedIn →
-                  </a>
                 </div>
               </div>
 

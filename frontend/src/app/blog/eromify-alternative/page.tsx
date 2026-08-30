@@ -117,7 +117,7 @@ const blogPostingSchema = {
   url: `${BASE}/blog/eromify-alternative`,
   datePublished: "2026-01-01",
   dateModified: new Date().toISOString().split("T")[0],
-  author: { "@type": "Person", name: "Akash Rana", url: "https://www.linkedin.com/in/akash-rana-24478421b/" },
+  author: { "@type": "Person", name: "Alex" },
   publisher: {
     "@type": "Organization",
     name: "Eromify",

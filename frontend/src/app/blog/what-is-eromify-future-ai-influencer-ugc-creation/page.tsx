@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     "AI video generator",
     "creator economy AI",
   ],
-  authors: [{ name: "Akash Rana", url: "https://www.linkedin.com/in/akash-rana-24478421b/" }],
+  authors: [{ name: "Alex" }],
   openGraph: {
     title: "What is Eromify? The Future of AI Influencer & UGC Creation",
     description:
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     siteName: "Eromify",
     type: "article",
     publishedTime: "2026-05-03T00:00:00.000Z",
-    authors: ["Akash Rana"],
+    authors: ["Alex"],
     tags: ["Eromify", "AI Influencers", "UGC", "AI Content Creation"],
     images: [
       {
@@ -104,8 +104,7 @@ export default function WhatIsEromifyBlogPost() {
       "Eromify is an AI media generation platform built for creators, brands, and businesses that want to create AI influencers, UGC-style content, images, and cinematic videos from one workspace.",
     author: {
       "@type": "Person",
-      name: "Akash Rana",
-      url: "https://www.linkedin.com/in/akash-rana-24478421b/",
+      name: "Alex",
     },
     publisher: {
       "@type": "Organization",
@@ -191,15 +190,12 @@ export default function WhatIsEromifyBlogPost() {
               <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500 pb-8 border-b border-slate-200">
                 <span className="flex items-center gap-1.5">
                   <User className="h-4 w-4" />
-                  <a
-                    href="https://www.linkedin.com/in/akash-rana-24478421b/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-slate-800 hover:text-[#1736cf] transition-colors"
+                  <span
+                    className="font-semibold text-slate-800"
                     itemProp="author"
                   >
-                    Akash Rana
-                  </a>
+                    Alex
+                  </span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />

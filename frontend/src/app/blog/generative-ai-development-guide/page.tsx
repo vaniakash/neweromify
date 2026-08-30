@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "Artificial Intelligence",
     "Beginner guide to AI",
   ],
-  authors: [{ name: "Akash Rana", url: "https://www.linkedin.com/in/akash-rana-24478421b/" }],
+  authors: [{ name: "Alex" }],
   openGraph: {
     title: "Generative AI (GenAI) Development: Complete Guide for Beginners",
     description:
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: "Eromify",
     type: "article",
     publishedTime: "2026-04-12T00:00:00.000Z",
-    authors: ["Akash Rana"],
+    authors: ["Alex"],
     tags: ["AI", "Technology", "GenAI", "Development"],
   },
   twitter: {
@@ -65,8 +65,7 @@ export default function GenAIGuideBlogPost() {
       "Generative AI development is transforming how software is built by enabling machines to create content, automate workflows, and enhance user experiences.",
     author: {
       "@type": "Person",
-      name: "Akash Rana",
-      url: "https://www.linkedin.com/in/akash-rana-24478421b/",
+      name: "Alex",
     },
     publisher: {
       "@type": "Organization",
@@ -151,15 +150,12 @@ export default function GenAIGuideBlogPost() {
               <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500 pb-8 border-b border-slate-200">
                 <span className="flex items-center gap-1.5">
                   <User className="h-4 w-4" />
-                  <a
-                    href="https://www.linkedin.com/in/akash-rana-24478421b/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-slate-800 hover:text-[#1736cf] transition-colors"
+                  <span
+                    className="font-semibold text-slate-800"
                     itemProp="author"
                   >
-                    Akash Rana
-                  </a>
+                    Alex
+                  </span>
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
@@ -376,10 +372,10 @@ export default function GenAIGuideBlogPost() {
               <div className="p-8 bg-white border border-slate-200 rounded-3xl flex flex-col md:flex-row items-center gap-6">
                 <div className="w-16 h-16 rounded-full bg-slate-200 overflow-hidden relative shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/AKASH.png" alt="Akash Rana" className="object-cover" />
+                  <img src="/AKASH.png" alt="Alex" className="object-cover" />
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <p className="text-lg font-black text-slate-900 mb-1">Akash Rana</p>
+                  <p className="text-lg font-black text-slate-900 mb-1">Alex</p>
                   <p className="text-sm text-slate-500 mb-4 font-medium uppercase tracking-tighter">
                     Chief Editor &amp; Full-Stack Engineer · Eromify
                   </p>
@@ -387,12 +383,6 @@ export default function GenAIGuideBlogPost() {
                     Passionate about building AI-first tools and exploring the intersection of productivity and engineering. Sharing insights into the rapidly evolving world of automation.
                   </p>
                   <div className="flex items-center justify-center md:justify-start gap-4">
-                    <a
-                      href="#"
-                      className="text-xs font-bold text-[#1736cf] hover:underline"
-                    >
-                      Follow on LinkedIn
-                    </a>
                     <a
                       href="#"
                       className="text-xs font-bold text-slate-500 hover:underline"
