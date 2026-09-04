@@ -8,11 +8,11 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isAuthenticated = !!req.auth;
 
-  // ── REGION BLOCKING (disabled — re-enable for production if needed) ────────
-  // const country = req.headers.get('x-vercel-ip-country') || req.headers.get('cf-ipcountry');
-  // if (country && country !== 'IN') {
-  //   return new NextResponse(`...`, { status: 403 });
-  // }
+  // ── REGION BLOCKING ────────
+  const country = req.headers.get('x-vercel-ip-country') || req.headers.get('cf-ipcountry');
+  if (country && country !== 'IN' && !pathname.startsWith('/not-available')) {
+    return NextResponse.redirect(new URL('/not-available', req.url));
+  }
 
 
   // ── ADMIN PROTECTION ─────────────────────────────────────────────────────

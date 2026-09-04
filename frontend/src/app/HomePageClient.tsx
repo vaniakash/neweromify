@@ -17,7 +17,7 @@ import { Footer } from "@/components/footer/Footer";
 import LineWaves from "@/components/ui/LineWaves";
 import StarBorder from "@/components/ui/StarBorder";
 import { ProUpgradeModal } from "@/components/ProUpgradeModal";
-import { AIPromoModal } from "@/components/AIPromoModal";
+
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
 import { useAnalytics } from "@/lib/useAnalytics";
@@ -55,7 +55,7 @@ const FAQS = [
 
 export default function HomePage() {
   const [showModal, setShowModal] = useState(false);
-  const [showAIPromo, setShowAIPromo] = useState(false);
+
   const [isUserPro, setIsUserPro] = useState(false);
   const [hasErosAccess, setHasErosAccess] = useState(false);
   const [mutedMap, setMutedMap] = useState<Record<number, boolean>>({});
@@ -99,16 +99,7 @@ export default function HomePage() {
       window.removeEventListener("eromify_pro_updated", checkPro);
   }, [status]);
 
-  useEffect(() => {
-    const shown = sessionStorage.getItem("ai_promo_shown");
-    if (!shown) {
-      const t = setTimeout(() => {
-        setShowAIPromo(true);
-        sessionStorage.setItem("ai_promo_shown", "1");
-      }, 1200);
-      return () => clearTimeout(t);
-    }
-  }, []);
+
 
   const handleProSuccess = () => {
     setIsUserPro(true);
@@ -942,10 +933,7 @@ export default function HomePage() {
         onClose={() => setShowModal(false)}
         onSuccess={handleProSuccess}
       />
-      <AIPromoModal
-        isOpen={showAIPromo}
-        onClose={() => setShowAIPromo(false)}
-      />
+
     </div>
   );
 }
