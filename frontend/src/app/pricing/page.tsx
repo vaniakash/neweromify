@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 
 /* ─── plan data ─────────────────────────────────────────────────────────── */
+const CAMPAIGN_END = new Date("2026-09-06T09:35:00+05:30").getTime();
+const isCamp = typeof window !== 'undefined' ? Date.now() < CAMPAIGN_END : true;
+
 const PLANS: {
   id: string; name: string; tagline: string;
   price: number; mrp: number; discount: number; credits: number; unitPrice: string;
@@ -27,7 +30,7 @@ const PLANS: {
 }[] = [
     {
       id: "value", name: "Beginner Pack", tagline: "₹499 · ~$5.99",
-      price: 499, mrp: 999, discount: 50, credits: 2500, unitPrice: "",
+      price: isCamp ? 249 : 499, mrp: isCamp ? 499 : 999, discount: 50, credits: 2500, unitPrice: "",
       accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
       iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
       icon: Star,
@@ -49,7 +52,7 @@ const PLANS: {
     },
     {
       id: "pro", name: "Creator Pack", tagline: "₹999 · ~$11.99",
-      price: 999, mrp: 1999, discount: 50, credits: 4000, unitPrice: "",
+      price: isCamp ? 499 : 999, mrp: isCamp ? 999 : 1999, discount: 50, credits: 4000, unitPrice: "",
       accent: "#a855f7", glow: "rgba(168,85,247,0.3)", border: "rgba(168,85,247,0.55)",
       iconBg: "linear-gradient(135deg,#4c1d95,#6d28d9)",
       icon: Flame,
@@ -70,7 +73,7 @@ const PLANS: {
     },
     {
       id: "mega", name: "Professional Pack", tagline: "₹1,999 · ~$23.99",
-      price: 1999, mrp: 3999, discount: 50, credits: 12000, unitPrice: "",
+      price: isCamp ? 999 : 1999, mrp: isCamp ? 1999 : 3999, discount: 50, credits: 12000, unitPrice: "",
       accent: "#f43f5e", glow: "rgba(244,63,94,0.28)", border: "rgba(244,63,94,0.45)",
       iconBg: "linear-gradient(135deg,#881337,#be123c)",
       icon: Layers,
@@ -98,7 +101,7 @@ const PLANS: {
     },
     {
       id: "premium", name: "Enterprise Pack", tagline: "₹3,999 · ~$47.99",
-      price: 3999, mrp: 7999, discount: 50, credits: 30000, unitPrice: "",
+      price: isCamp ? 1999 : 3999, mrp: isCamp ? 3999 : 7999, discount: 50, credits: 30000, unitPrice: "",
       accent: "#eab308", glow: "rgba(234,179,8,0.3)", border: "rgba(234,179,8,0.55)",
       iconBg: "linear-gradient(135deg,#a16207,#ca8a04)",
       icon: Sparkles,
@@ -171,10 +174,27 @@ export default function PricingPage() {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [visible, setVisible] = useState(false);
   const [stars, setStars] = useState<{ w: number; h: number; top: number; left: number; dur: number; delay: number }[]>([]);
+  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
 
   // Track pricing page view for admin analytics
   useAnalytics("pricing");
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      const difference = CAMPAIGN_END - now;
+      if (difference <= 0) {
+        setTimeLeft(null);
+        clearInterval(timer);
+      } else {
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        setTimeLeft({ hours, minutes, seconds });
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => { setTimeout(() => setVisible(true), 80); }, []);
 
@@ -254,7 +274,7 @@ export default function PricingPage() {
         .plan-card{transition:transform 0.3s cubic-bezier(.22,1,.36,1),box-shadow 0.3s ease}
         .plan-card.available:hover{transform:translateY(-6px)}
         .shimmer-text{
-          background:linear-gradient(90deg,#fff 0%,#a78bfa 40%,#fff 60%,#fff 100%);
+          background:linear-gradient(90deg,#0f172a 0%,#8b5cf6 40%,#0f172a 60%,#0f172a 100%);
           background-size:200% auto;
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
           animation:shimmer 3s linear infinite
@@ -295,15 +315,15 @@ export default function PricingPage() {
 
 
 
-      <div className="pricing-root min-h-screen w-full relative overflow-hidden" style={{ background: "linear-gradient(135deg,#060610 0%,#0a0a1c 50%,#07071a 100%)" }}>
+      <div className="pricing-root min-h-screen w-full relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f8fafc 0%,#f1f5f9 50%,#e2e8f0 100%)" }}>
 
         {/* ── Background mesh ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="float-orb absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full" style={{ background: "radial-gradient(circle,rgba(124,58,237,0.12) 0%,transparent 65%)", filter: "blur(60px)" }} />
-          <div className="absolute bottom-[-120px] left-[10%] w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle,rgba(34,197,94,0.08) 0%,transparent 65%)", filter: "blur(50px)" }} />
-          <div className="absolute top-1/2 right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle,rgba(59,130,246,0.07) 0%,transparent 65%)", filter: "blur(60px)" }} />
+          <div className="float-orb absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full" style={{ background: "radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 65%)", filter: "blur(60px)" }} />
+          <div className="absolute bottom-[-120px] left-[10%] w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle,rgba(34,197,94,0.06) 0%,transparent 65%)", filter: "blur(50px)" }} />
+          <div className="absolute top-1/2 right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 65%)", filter: "blur(60px)" }} />
           {/* grid */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(0,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
           {/* stars — client only to avoid hydration mismatch */}
           {stars.map((s, i) => (
             <div
@@ -314,7 +334,7 @@ export default function PricingPage() {
                 height: `${s.h}px`,
                 top: `${s.top}%`,
                 left: `${s.left}%`,
-                background: "rgba(255,255,255,0.5)",
+                background: "rgba(0,0,0,0.1)",
                 animation: `glow-pulse ${s.dur}s ease-in-out ${s.delay}s infinite`,
               }}
             />
@@ -339,21 +359,32 @@ export default function PricingPage() {
             <h1 className="text-5xl md:text-6xl font-black mb-5 tracking-tight leading-none">
               <span className="shimmer-text">Pick your plan</span>
             </h1>
-            <p className="text-lg md:text-xl max-w-lg mx-auto font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p className="text-lg md:text-xl max-w-lg mx-auto font-medium" style={{ color: "rgba(15,23,42,0.6)" }}>
               One-time payments. Credits never expire. No recurring charges.
             </p>
-
-            {/* Stats row */}
-            <div className="flex flex-wrap justify-center gap-8 mt-10">
-              {[{ val: 393, label: "Creators", suffix: "+" }, { val: 10000, label: "Images Generated", suffix: "+" }, { val: 100, label: "Satisfaction", suffix: "%" }].map(({ val, label, suffix }) => (
-                <div key={label} className="text-center">
-                  <div className="text-3xl font-black text-white">
-                    {visible && <Counter value={val} />}{suffix}
-                  </div>
-                  <div className="text-xs font-semibold mt-1" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</div>
+            {timeLeft && (
+              <div className="mt-8 inline-flex flex-col items-center p-4 rounded-2xl border" style={{ background: "rgba(239,68,68,0.05)", borderColor: "rgba(239,68,68,0.2)" }}>
+                <div className="text-red-500 font-bold mb-2 flex items-center gap-2">
+                  <Flame className="w-5 h-5 animate-pulse" /> 50% OFF FLASH SALE ENDS IN:
                 </div>
-              ))}
-            </div>
+                <div className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-black text-red-600">{timeLeft.hours.toString().padStart(2, '0')}</div>
+                    <div className="text-[10px] font-bold text-red-400 uppercase">Hours</div>
+                  </div>
+                  <div className="text-3xl font-black text-red-600">:</div>
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-black text-red-600">{timeLeft.minutes.toString().padStart(2, '0')}</div>
+                    <div className="text-[10px] font-bold text-red-400 uppercase">Mins</div>
+                  </div>
+                  <div className="text-3xl font-black text-red-600">:</div>
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-black text-red-600">{timeLeft.seconds.toString().padStart(2, '0')}</div>
+                    <div className="text-[10px] font-bold text-red-400 uppercase">Secs</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Cards ── */}
@@ -363,11 +394,11 @@ export default function PricingPage() {
               return (
                 <div
                   key={plan.id}
-                  className={`card-enter plan-card ${plan.available ? "available" : ""} ${plan.id === "mega" ? "mega-special" : ""} relative rounded-3xl flex flex-col overflow-hidden`}
+                  className={`card-enter plan-card ${plan.available ? "available" : ""} ${plan.id === "mega" ? "mega-special" : ""} relative rounded-3xl flex flex-col overflow-hidden bg-white/60`}
                   style={{
-                    background: plan.available ? "linear-gradient(160deg,#0e0e20 0%,#131328 100%)" : "rgba(255,255,255,0.015)",
+                    background: plan.available ? "linear-gradient(160deg,#ffffff 0%,#f8fafc 100%)" : "rgba(0,0,0,0.015)",
                     border: `1px solid ${plan.border}`,
-                    boxShadow: plan.available ? `0 0 0 1px ${plan.border}, 0 20px 60px ${plan.glow}, inset 0 1px 0 rgba(255,255,255,0.05)` : "none",
+                    boxShadow: plan.available ? `0 0 0 1px ${plan.border}, 0 20px 40px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.5)` : "none",
                   }}
                 >
                   {/* Top glow line */}
@@ -423,8 +454,8 @@ export default function PricingPage() {
                           style={{ color: plan.available ? plan.accent : "#4b5563" }}
                         />
                       </div>
-                      <h2 className="text-xl font-black" style={{ color: plan.available ? "#fff" : "#374151" }}>{plan.name}</h2>
-                      <p className="text-xs font-semibold mt-0.5" style={{ color: plan.available ? "rgba(255,255,255,0.4)" : "#374151" }}>{plan.tagline}</p>
+                      <h2 className="text-xl font-black" style={{ color: plan.available ? "#0f172a" : "#64748b" }}>{plan.name}</h2>
+                      <p className="text-xs font-semibold mt-0.5" style={{ color: plan.available ? "rgba(15,23,42,0.5)" : "#64748b" }}>{plan.tagline}</p>
                     </div>
 
                     {/* Price */}
@@ -433,7 +464,7 @@ export default function PricingPage() {
                       <div className="flex items-center gap-2 mb-1">
                         <span
                           className="mrp-line text-sm font-bold tabular-nums"
-                          style={{ color: "rgba(255,255,255,0.3)" }}
+                          style={{ color: "rgba(15,23,42,0.4)" }}
                         >
                           ₹{plan.mrp}
                         </span>
@@ -452,14 +483,14 @@ export default function PricingPage() {
 
                       {/* Actual price */}
                       <div className="flex items-baseline gap-1 mb-2">
-                        <span className="text-lg font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>₹</span>
+                        <span className="text-lg font-bold" style={{ color: "rgba(15,23,42,0.4)" }}>₹</span>
                         <span
                           className="price-pop text-6xl font-black tabular-nums leading-none"
-                          style={{ color: "#fff" }}
+                          style={{ color: "#0f172a" }}
                         >
                           {visible ? <Counter value={plan.price} /> : plan.price}
                         </span>
-                        <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(255,255,255,0.35)" }}>one-time</span>
+                        <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(15,23,42,0.4)" }}>one-time</span>
                       </div>
 
                       <div
@@ -493,7 +524,7 @@ export default function PricingPage() {
                             <div
                               className="check-icon w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                               style={{
-                                background: isDisabled ? "rgba(255,255,255,0.05)" : (
+                                background: isDisabled ? "rgba(0,0,0,0.03)" : (
                                   plan.id === "value" ? "rgba(59,130,246,0.15)"
                                     : plan.id === "pro" ? "rgba(168,85,247,0.15)"
                                       : plan.id === "mega" ? "rgba(244,63,94,0.15)"
@@ -502,7 +533,7 @@ export default function PricingPage() {
                               }}
                             >
                               {isDisabled ? (
-                                <Lock className="h-3 w-3" style={{ color: "rgba(255,255,255,0.3)" }} />
+                                <Lock className="h-3 w-3" style={{ color: "rgba(15,23,42,0.3)" }} />
                               ) : isMcp ? (
                                 <img src="/claude-color.webp" alt="Claude" className="w-3 h-3 object-contain" />
                               ) : feat.includes("🎬") ? (
@@ -511,7 +542,7 @@ export default function PricingPage() {
                                 <Check className="h-3 w-3" style={{ color: plan.accent }} />
                               )}
                             </div>
-                            <span className="text-sm font-medium" style={{ color: isDisabled ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.75)" }}>{cleanFeat}</span>
+                            <span className="text-sm font-medium" style={{ color: isDisabled ? "rgba(15,23,42,0.4)" : "rgba(15,23,42,0.75)" }}>{cleanFeat}</span>
                           </li>
                         );
                       })}
@@ -548,9 +579,9 @@ export default function PricingPage() {
               { icon: Star, label: "24-hr refund guarantee" },
               { icon: Check, label: "Credits never expire" },
             ].map(({ icon: Ic, label }) => (
-              <div key={label} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-                <Ic className="h-3.5 w-3.5" style={{ color: "rgba(255,255,255,0.3)" }} />
-                <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</span>
+              <div key={label} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border" style={{ background: "rgba(0,0,0,0.02)", borderColor: "rgba(0,0,0,0.06)" }}>
+                <Ic className="h-3.5 w-3.5" style={{ color: "rgba(15,23,42,0.5)" }} />
+                <span className="text-xs font-semibold" style={{ color: "rgba(15,23,42,0.6)" }}>{label}</span>
               </div>
             ))}
           </div>
@@ -560,19 +591,19 @@ export default function PricingPage() {
           <div className={`mt-4 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
             <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg" style={{ background: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "#34d399", boxShadow: "0 4px 20px rgba(16,185,129,0.05)" }}>
               <span className="text-lg">💡</span>
-              <span><strong className="text-white tracking-wide">Note:</strong> There is no monthly limit. These credits will last until you use all of them.</span>
+              <span><strong className="text-slate-800 tracking-wide">Note:</strong> There is no monthly limit. These credits will last until you use all of them.</span>
             </p>
           </div>
 
           {/* ── How Credits Work ── */}
           <div className={`mt-24 max-w-4xl mx-auto transition-all duration-700 delay-350 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
             <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-4 border" style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)", color: "#a5b4fc" }}>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-4 border" style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)", color: "#6366f1" }}>
                 <Zap className="h-3 w-3" />
                 TRANSPARENT CREDIT SYSTEM
               </div>
-              <h2 className="text-3xl font-black text-white mb-3">How We Calculate Credits</h2>
-              <p className="text-sm max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.4)" }}>
+              <h2 className="text-3xl font-black text-slate-900 mb-3">How We Calculate Credits</h2>
+              <p className="text-sm max-w-xl mx-auto" style={{ color: "rgba(15,23,42,0.6)" }}>
                 Simple, transparent, no hidden fees. Here&apos;s exactly how your credits are spent.
               </p>
             </div>
@@ -580,22 +611,22 @@ export default function PricingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/* Left: What costs what */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
-                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(165,180,252,0.8)" }}>Credit Cost Per Action</p>
+              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.01)" }}>
+                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(99,102,241,0.8)" }}>Credit Cost Per Action</p>
                 </div>
-                <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
                   {[
-                    { action: "🖼️ Text-to-Image", cost: "100 credits", display: "= 1 credit shown", color: "#a78bfa" },
-                    { action: "✏️ AI Image Edit", cost: "100 credits", display: "= 1 credit shown", color: "#60a5fa" },
-                    { action: "🎬 Video Generation", cost: "1,500 credits", display: "= 15 credits shown", color: "#f472b6" },
-                    { action: "🎭 AI Influencer", cost: "100 credits", display: "= 1 credit shown", color: "#34d399" },
+                    { action: "🖼️ Text-to-Image", cost: "100 credits", display: "= 1 credit shown", color: "#8b5cf6" },
+                    { action: "✏️ AI Image Edit", cost: "100 credits", display: "= 1 credit shown", color: "#3b82f6" },
+                    { action: "🎬 Video Generation", cost: "1,500 credits", display: "= 15 credits shown", color: "#ec4899" },
+                    { action: "🎭 AI Influencer", cost: "100 credits", display: "= 1 credit shown", color: "#10b981" },
                   ].map(({ action, cost, display, color }) => (
                     <div key={action} className="flex items-center justify-between px-6 py-4">
-                      <span className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.75)" }}>{action}</span>
+                      <span className="text-sm font-semibold" style={{ color: "rgba(15,23,42,0.75)" }}>{action}</span>
                       <div className="text-right">
                         <span className="text-sm font-black tabular-nums" style={{ color }}>{cost}</span>
-                        <p className="text-[10px] mt-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{display}</p>
+                        <p className="text-[10px] mt-0.5" style={{ color: "rgba(15,23,42,0.4)" }}>{display}</p>
                       </div>
                     </div>
                   ))}
@@ -603,16 +634,16 @@ export default function PricingPage() {
               </div>
 
               {/* Right: Pack value breakdown */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
-                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(165,180,252,0.8)" }}>What You Get Per Pack</p>
+              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.01)" }}>
+                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(99,102,241,0.8)" }}>What You Get Per Pack</p>
                 </div>
-                <div className="divide-y" style={{ borderColor: "rgba(255,255,255,0.05)" }}>
+                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
                   {[
-                    { pack: "Beginner Pack ₹499", internal: "2,500 credits", images: "25 images", videos: "—", color: "#60a5fa" },
-                    { pack: "Creator Pack ₹999", internal: "4,000 credits", images: "40 images", videos: "2 videos", color: "#c084fc" },
-                    { pack: "Professional Pack ₹1,999", internal: "12,000 credits", images: "120 images", videos: "8 videos", color: "#f87171" },
-                    { pack: "Enterprise Pack ₹3,999", internal: "30,000 credits", images: "300 images", videos: "20 videos", color: "#facc15" },
+                    { pack: "Beginner Pack ₹499", internal: "2,500 credits", images: "25 images", videos: "—", color: "#3b82f6" },
+                    { pack: "Creator Pack ₹999", internal: "4,000 credits", images: "40 images", videos: "2 videos", color: "#9333ea" },
+                    { pack: "Professional Pack ₹1,999", internal: "12,000 credits", images: "120 images", videos: "8 videos", color: "#ef4444" },
+                    { pack: "Enterprise Pack ₹3,999", internal: "30,000 credits", images: "300 images", videos: "20 videos", color: "#eab308" },
                   ].map(({ pack, internal, images, videos, color }) => (
                     <div key={pack} className="px-6 py-4">
                       <div className="flex items-center justify-between mb-2">
@@ -622,11 +653,11 @@ export default function PricingPage() {
                       <div className="flex gap-4">
                         <div className="flex items-center gap-1.5">
                           <span className="text-lg">🖼️</span>
-                          <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>{images}</span>
+                          <span className="text-xs font-semibold" style={{ color: "rgba(15,23,42,0.6)" }}>{images}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <span className="text-lg">🎬</span>
-                          <span className="text-xs font-semibold" style={{ color: videos === "—" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.5)" }}>{videos === "—" ? "No video access" : videos}</span>
+                          <span className="text-xs font-semibold" style={{ color: videos === "—" ? "rgba(15,23,42,0.3)" : "rgba(15,23,42,0.6)" }}>{videos === "—" ? "No video access" : videos}</span>
                         </div>
                       </div>
                     </div>
@@ -634,9 +665,9 @@ export default function PricingPage() {
                 </div>
 
                 {/* Formula note */}
-                <div className="px-6 py-4 border-t" style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(99,102,241,0.05)" }}>
-                  <p className="text-[11px] leading-relaxed" style={{ color: "rgba(165,180,252,0.7)" }}>
-                    <span className="font-black text-indigo-300">Formula:</span> Your balance shown ÷ 100 = images available. Credits deduct in the background — you always see a clean number.
+                <div className="px-6 py-4 border-t" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(99,102,241,0.03)" }}>
+                  <p className="text-[11px] leading-relaxed" style={{ color: "rgba(15,23,42,0.6)" }}>
+                    <span className="font-black text-indigo-600">Formula:</span> Your balance shown ÷ 100 = images available. Credits deduct in the background — you always see a clean number.
                   </p>
                 </div>
               </div>
@@ -646,8 +677,8 @@ export default function PricingPage() {
 
           {/* ── FAQ ── */}
           <div className={`mt-24 max-w-2xl mx-auto transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <h2 className="text-3xl font-black text-white text-center mb-2">Questions? Answered.</h2>
-            <p className="text-center text-sm mb-10" style={{ color: "rgba(255,255,255,0.35)" }}>Everything you need to know before buying.</p>
+            <h2 className="text-3xl font-black text-slate-900 text-center mb-2">Questions? Answered.</h2>
+            <p className="text-center text-sm mb-10" style={{ color: "rgba(15,23,42,0.5)" }}>Everything you need to know before buying.</p>
             <div className="space-y-3">
               {[
                 { q: "What are credits?", a: "Each 100 credits = 1 AI image generation, or 1,500 credits = 1 video generation. Credits are added within 1 hour after payment verification." },
@@ -657,12 +688,12 @@ export default function PricingPage() {
                 { q: "How long does activation take?", a: "Your subscription is activated within 1 hour after your UTR/Transaction ID is verified by our team." },
                 { q: "Which plans include video generation?", a: "Creator Pack (₹999), Professional Pack (₹1,999), and Enterprise Pack (₹3,999) include video generation access. Each video costs 1,500 credits." },
               ].map(({ q, a }, i) => (
-                <details key={i} className="group rounded-2xl border overflow-hidden" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-                  <summary className="flex items-center justify-between px-6 py-4 text-sm font-bold text-white list-none cursor-pointer select-none hover:bg-white/[0.02] transition-colors">
+                <details key={i} className="group rounded-2xl border overflow-hidden bg-white/70" style={{ borderColor: "rgba(0,0,0,0.08)", boxShadow: "0 2px 10px rgba(0,0,0,0.01)" }}>
+                  <summary className="flex items-center justify-between px-6 py-4 text-sm font-bold text-slate-900 list-none cursor-pointer select-none hover:bg-black/[0.02] transition-colors">
                     {q}
-                    <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" style={{ color: "rgba(255,255,255,0.35)" }} />
+                    <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" style={{ color: "rgba(15,23,42,0.4)" }} />
                   </summary>
-                  <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>{a}</p>
+                  <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: "rgba(15,23,42,0.65)" }}>{a}</p>
                 </details>
               ))}
             </div>

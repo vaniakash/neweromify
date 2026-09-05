@@ -115,7 +115,7 @@ export function Navbar() {
 
               {/* Buy button */}
               <button
-                onClick={() => router.push("/tools/creator/image-generator?upgrade=true")}
+                onClick={() => router.push("/pricing")}
                 title="Buy more credits"
                 className="flex items-center gap-1 rounded-lg bg-violet-600 hover:bg-violet-500 active:scale-95 text-white px-2.5 py-1.5 text-xs font-black transition-all hover:shadow-lg hover:shadow-violet-500/30"
               >

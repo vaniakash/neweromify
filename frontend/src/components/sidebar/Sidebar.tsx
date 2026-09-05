@@ -354,7 +354,7 @@ export function Sidebar({ mobile = false, onNavigate }: SidebarProps) {
             Unlock unlimited access to all tools.
           </p>
           <button
-            onClick={() => router.push("/tools/creator/image-generator?upgrade=true")}
+            onClick={() => router.push("/pricing")}
             className="w-full py-2 text-xs font-bold text-[#1736cf] bg-white border border-[#1736cf]/20 rounded-lg hover:bg-[#1736cf] hover:text-white transition-all"
           >
             Upgrade Now
