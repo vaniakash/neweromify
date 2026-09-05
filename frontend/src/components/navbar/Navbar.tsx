@@ -106,7 +106,7 @@ export function Navbar() {
                   style={{ filter: "drop-shadow(0 0 5px rgba(124,58,237,0.6))" }}
                 />
                 <span className="text-sm font-black tabular-nums text-violet-700 leading-none">
-                  {Math.floor(credits / 100)}
+                  {credits.toLocaleString()}
                 </span>
                 <span className="hidden sm:inline text-xs font-semibold text-violet-400 leading-none">
                   credits

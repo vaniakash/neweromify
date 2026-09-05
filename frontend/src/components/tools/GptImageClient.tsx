@@ -201,7 +201,7 @@ export default function GptImageClient() {
             {status === "authenticated" && credits !== null && (
               <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-pink-500/20 bg-pink-500/10 px-4 py-2 text-sm font-bold text-white shadow-xl backdrop-blur-md">
                 <span className="text-pink-400">⚡</span>
-                Credits Available: <span className="text-pink-300">{credits}</span>
+                Credits Available: <span className="text-pink-300">{credits.toLocaleString()}</span>
                 <button 
                   onClick={() => setPayModal({ open: true, mode: "payment" })}
                   className="ml-2 rounded bg-white/10 px-2 py-0.5 text-xs transition hover:bg-white/20"

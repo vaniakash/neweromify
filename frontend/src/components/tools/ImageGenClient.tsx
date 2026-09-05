@@ -277,7 +277,7 @@ export default function ImageGenClient() {
                       className="text-xl font-black tabular-nums leading-none"
                       style={{ color: credits > 0 ? "#c084fc" : "#f87171" }}
                     >
-                      {credits}
+                      {credits.toLocaleString()}
                     </p>
                   </div>
 

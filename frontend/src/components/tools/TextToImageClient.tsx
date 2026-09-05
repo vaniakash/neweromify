@@ -506,7 +506,7 @@ export default function TextToImageClient() {
                 <div className="flex items-center gap-1.5">
                   <Flame className="h-3.5 w-3.5 text-orange-400" />
                   <span className="text-xs text-slate-600">
-                    <span className="font-semibold text-slate-900">{Math.floor((credits ?? 0) / 100)}</span> credits
+                    <span className="font-semibold text-slate-900">{credits?.toLocaleString() ?? 0}</span> credits
                   </span>
                 </div>
                 <button

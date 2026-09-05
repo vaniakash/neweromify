@@ -667,7 +667,7 @@ export default function PricingPage() {
                 {/* Formula note */}
                 <div className="px-6 py-4 border-t" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(99,102,241,0.03)" }}>
                   <p className="text-[11px] leading-relaxed" style={{ color: "rgba(15,23,42,0.6)" }}>
-                    <span className="font-black text-indigo-600">Formula:</span> Your balance shown ÷ 100 = images available. Credits deduct in the background — you always see a clean number.
+                    <span className="font-black text-indigo-600">Formula:</span> Your balance shown ÷ 100 = images available. 1 image generation costs 100 credits, and 1 video generation costs 1,500 credits.
                   </p>
                 </div>
               </div>
