@@ -38,6 +38,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please sign in to continue" }, { status: 401 });
     }
 
+    // ── Region guard: PayU is for Indian users only ────────────────────────────
+    let country: string | null =
+      request.headers.get("x-vercel-ip-country") ||
+      request.headers.get("cf-ipcountry") ||
+      null;
+
+    // Dev-only override via query param (?country=IN)
+    if (process.env.NODE_ENV === "development") {
+      const url      = new URL(request.url);
+      const override = url.searchParams.get("country");
+      if (override) country = override.toUpperCase();
+    }
+
+    if (country !== "IN") {
+      // Either international user OR country unknown — do not route to PayU
+      return NextResponse.json(
+        { error: "PayU is for Indian payments only. International users should use PayPal." },
+        { status: 400 }
+      );
+    }
+
     // ── Pricing tiers ─────────────────────────────────────────────────────────
     const CAMPAIGN_END = new Date("2026-09-07T23:42:00+05:30").getTime();
     const isCamp = Date.now() < CAMPAIGN_END;

@@ -27,8 +27,11 @@ export interface IPayment {
   plan: string;                                        // plan id e.g. "pro", "mega"
   planName?: string;                                   // human name e.g. "Creator Pack"
   creditsToAdd?: number;
-  paymentMethod: "razorpay" | "upi" | "payu";         // distinguishes the source
+  paymentMethod: "razorpay" | "upi" | "payu" | "paypal";  // distinguishes the source
   status: "created" | "paid" | "failed" | "pending_verification";
+  // PayPal-specific
+  paypalOrderId?: string;    // PayPal order ID from create-order
+  paypalCaptureId?: string;  // PayPal capture ID from capture
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -62,9 +65,13 @@ const PaymentSchema = new Schema<IPayment>(
     creditsToAdd:        { type: Number, default: 0 },
     paymentMethod: {
       type: String,
-      enum: ["razorpay", "upi", "payu"],
+      enum: ["razorpay", "upi", "payu", "paypal"],
       required: true,
     },
+
+    // PayPal-specific fields
+    paypalOrderId:   { type: String, sparse: true },
+    paypalCaptureId: { type: String },
     status: {
       type: String,
       enum: ["created", "paid", "failed", "pending_verification"],
