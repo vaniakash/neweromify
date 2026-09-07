@@ -12,9 +12,9 @@ const USD_TIERS: Record<string, { priceUSD: number; credits: number; planName: s
 
 // ── PayPal OAuth2 token ────────────────────────────────────────────────────────
 async function getPayPalAccessToken(): Promise<string> {
-  const clientId = process.env.PAYPAL_CLIENT_ID!;
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
   const secret   = process.env.PAYPAL_SECRET!;
-  const base     = process.env.PAYPAL_BASE_URL ?? "https://api-m.sandbox.paypal.com";
+  const base     = process.env.PAYPAL_BASE_URL ?? "https://api-m.paypal.com";
 
   const res = await fetch(`${base}/v1/oauth2/token`, {
     method: "POST",
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
     // ── Get PayPal access token ────────────────────────────────────────────────
     const accessToken = await getPayPalAccessToken();
-    const base        = process.env.PAYPAL_BASE_URL ?? "https://api-m.sandbox.paypal.com";
+    const base        = process.env.PAYPAL_BASE_URL ?? "https://api-m.paypal.com";
     const baseUrl     = process.env.NEXTAUTH_URL    ?? "https://www.eromify.in";
 
     // ── Create PayPal order ────────────────────────────────────────────────────
