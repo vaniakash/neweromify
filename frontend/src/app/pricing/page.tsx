@@ -200,8 +200,8 @@ export default function PricingPage() {
   const effectiveGateway = regionOverride === "IN"
     ? "payu"
     : regionOverride === "INTL"
-    ? "paypal"
-    : geo.gateway;
+      ? "paypal"
+      : geo.gateway;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -251,7 +251,7 @@ export default function PricingPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ planId: plan.id, planName: plan.name, amount: plan.price }),
-    }).catch(() => {});
+    }).catch(() => { });
 
     try {
       const res = await fetch("/api/payment/create-order", {
@@ -304,70 +304,73 @@ export default function PricingPage() {
       // This function is stored in window so the PayPal SDK can call it
       (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`] = async () => {
         const captureRes = await fetch("/api/payment/paypal-capture", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderID,
-            userEmail: session?.user?.email ?? "",
-          }),
-        });
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderID,
+          userEmail: session?.user?.email ?? "",
+        }),
+      });
 
-        if (!captureRes.ok) {
-          showToast("Payment capture failed. Please contact support.", false);
-          setLoading(null);
-          return;
-        }
+      if (!captureRes.ok) {
+        showToast("Payment capture failed. Please contact support.", false);
+        setLoading(null);
+        return;
+      }
 
-        const { credits } = await captureRes.json();
-        window.location.href = `/payment-success?credits=${credits}`;
-      };
+      const { credits } = await captureRes.json();
+      window.location.href = `/payment-success?credits=${credits}`;
+    };
 
-      return orderID;
-    } catch (err) {
-      console.error(err);
-      showToast("Something went wrong. Please try again.", false);
-      setLoading(null);
-    }
-  }, [session, status]);
+    return orderID;
+  } catch (err) {
+    console.error(err);
+    showToast("Something went wrong. Please try again.", false);
+    setLoading(null);
+  }
+}, [session, status]);
 
-  // ── Route to correct gateway ───────────────────────────────────────────────
-  // Note: PayPal users see SDK-rendered buttons directly in the card (below).
-  // This function is only reached for the PayU button (India / unknown region).
-  const handlePurchase = (plan: (typeof PLANS)[0]) => {
+// ── Route to correct gateway ───────────────────────────────────────────────
+const handlePurchase = (plan: (typeof PLANS)[0]) => {
+  if (effectiveGateway === "paypal") {
+    // PayPal uses the SDK buttons rendered below — this path is for fallback
+    handlePayPalPurchase(plan);
+  } else {
     handlePayUPurchase(plan);
-  };
+  }
+};
 
-  return (
-    <>
-      {/* PayPal JS SDK — loaded only for international users */}
-      {effectiveGateway === "paypal" && (
-        <Script
-          src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
-          onLoad={() => {
-            // Mount PayPal buttons into each card's container
-            PLANS.forEach((plan) => {
-              const container = document.getElementById(`paypal-button-${plan.id}`);
-              if (!container || container.childNodes.length > 0) return;
-              // @ts-expect-error PayPal SDK is loaded globally
-              window.paypal?.Buttons({
-                createOrder: () => handlePayPalPurchase(plan),
-                onApprove: async () => {
-                  const captureFn = (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`];
-                  if (typeof captureFn === "function") await captureFn();
-                },
-                onError: (err: unknown) => {
-                  console.error("PayPal error:", err);
-                  showToast("PayPal encountered an error. Please try again.", false);
-                  setLoading(null);
-                },
-                style: { layout: "vertical", color: "blue", shape: "rect", label: "pay" },
-              }).render(`#paypal-button-${plan.id}`);
-            });
-          }}
-        />
-      )}
+return (
+  <>
+    {/* PayPal JS SDK — loaded only for international users */}
+    {effectiveGateway === "paypal" && (
+      <Script
+        src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
+        onLoad={() => {
+          // Mount PayPal buttons into each card's container
+          PLANS.forEach((plan) => {
+            const container = document.getElementById(`paypal-button-${plan.id}`);
+            if (!container || container.childNodes.length > 0) return;
+            // @ts-expect-error PayPal SDK is loaded globally
+            window.paypal?.Buttons({
+              createOrder: () => handlePayPalPurchase(plan),
+              onApprove: async () => {
+                const captureFn = (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`];
+                if (typeof captureFn === "function") await captureFn();
+              },
+              onError: (err: unknown) => {
+                console.error("PayPal error:", err);
+                showToast("PayPal encountered an error. Please try again.", false);
+                setLoading(null);
+              },
+              style: { layout: "vertical", color: "blue", shape: "rect", label: "pay" },
+            }).render(`#paypal-button-${plan.id}`);
+          });
+        }}
+      />
+    )}
 
-      <style>{`
+    <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         .pricing-root *{font-family:'Inter',sans-serif}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
@@ -426,441 +429,441 @@ export default function PricingPage() {
 
 
 
-      <div className="pricing-root min-h-screen w-full relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f8fafc 0%,#f1f5f9 50%,#e2e8f0 100%)" }}>
+    <div className="pricing-root min-h-screen w-full relative overflow-hidden" style={{ background: "linear-gradient(135deg,#f8fafc 0%,#f1f5f9 50%,#e2e8f0 100%)" }}>
 
-        {/* ── Background mesh ── */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="float-orb absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full" style={{ background: "radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 65%)", filter: "blur(60px)" }} />
-          <div className="absolute bottom-[-120px] left-[10%] w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle,rgba(34,197,94,0.06) 0%,transparent 65%)", filter: "blur(50px)" }} />
-          <div className="absolute top-1/2 right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 65%)", filter: "blur(60px)" }} />
-          {/* grid */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(0,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
-          {/* stars — client only to avoid hydration mismatch */}
-          {stars.map((s, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: `${s.w}px`,
-                height: `${s.h}px`,
-                top: `${s.top}%`,
-                left: `${s.left}%`,
-                background: "rgba(0,0,0,0.1)",
-                animation: `glow-pulse ${s.dur}s ease-in-out ${s.delay}s infinite`,
-              }}
-            />
+      {/* ── Background mesh ── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="float-orb absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[700px] rounded-full" style={{ background: "radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 65%)", filter: "blur(60px)" }} />
+        <div className="absolute bottom-[-120px] left-[10%] w-[500px] h-[500px] rounded-full" style={{ background: "radial-gradient(circle,rgba(34,197,94,0.06) 0%,transparent 65%)", filter: "blur(50px)" }} />
+        <div className="absolute top-1/2 right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle,rgba(59,130,246,0.05) 0%,transparent 65%)", filter: "blur(60px)" }} />
+        {/* grid */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(0,0,0,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,1) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
+        {/* stars — client only to avoid hydration mismatch */}
+        {stars.map((s, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: `${s.w}px`,
+              height: `${s.h}px`,
+              top: `${s.top}%`,
+              left: `${s.left}%`,
+              background: "rgba(0,0,0,0.1)",
+              animation: `glow-pulse ${s.dur}s ease-in-out ${s.delay}s infinite`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Region selector — shown only when country is unknown */}
+      {!geo.loading && !geo.gateway && !regionOverride && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9998] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-4" style={{ background: "rgba(15,23,42,0.95)", borderColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)" }}>
+          <Globe className="h-5 w-5 text-purple-400 shrink-0" />
+          <span className="text-white text-sm font-semibold">Select your region for pricing</span>
+          <button
+            onClick={() => setRegionOverride("IN")}
+            className="px-4 py-2 rounded-xl text-xs font-black bg-orange-500 text-white hover:bg-orange-400 transition"
+          >
+            🇮🇳 India (INR)
+          </button>
+          <button
+            onClick={() => setRegionOverride("INTL")}
+            className="px-4 py-2 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 transition"
+          >
+            🌍 International (USD)
+          </button>
+        </div>
+      )}
+      {toast && (
+        <div className="toast-enter fixed top-6 right-6 z-[9999] px-5 py-4 rounded-2xl text-sm font-semibold shadow-2xl border max-w-sm" style={{ background: toast.ok ? "rgba(21,128,61,0.95)" : "rgba(185,28,28,0.95)", borderColor: toast.ok ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)", color: "#fff", backdropFilter: "blur(12px)" }}>
+          {toast.msg}
+        </div>
+      )}
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+        {/* ── Header ── */}
+        <div className={`text-center mb-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-6 border" style={{ background: "rgba(168,85,247,0.08)", borderColor: "rgba(168,85,247,0.25)", color: "#c084fc" }}>
+            <Sparkles className="h-3 w-3" />
+            TRANSPARENT PRICING · NO SUBSCRIPTIONS
+          </div>
+          <h1 className="text-5xl md:text-6xl font-black mb-5 tracking-tight leading-none">
+            <span className="shimmer-text">Pick your plan</span>
+          </h1>
+          <p className="text-lg md:text-xl max-w-lg mx-auto font-medium" style={{ color: "rgba(15,23,42,0.6)" }}>
+            One-time payments. Credits never expire. No recurring charges.
+          </p>
+          {/* Campaign countdown — India (PayU) only */}
+          {effectiveGateway === "payu" && timeLeft && (
+            <div className="mt-8 inline-flex flex-col items-center p-4 rounded-2xl border" style={{ background: "rgba(239,68,68,0.05)", borderColor: "rgba(239,68,68,0.2)" }}>
+              <div className="text-red-500 font-bold mb-2 flex items-center gap-2">
+                <Flame className="w-5 h-5 animate-pulse" /> 50% OFF FLASH SALE ENDS IN:
+              </div>
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="text-3xl font-black text-red-600">{timeLeft.hours.toString().padStart(2, '0')}</div>
+                  <div className="text-[10px] font-bold text-red-400 uppercase">Hours</div>
+                </div>
+                <div className="text-3xl font-black text-red-600">:</div>
+                <div className="flex flex-col items-center">
+                  <div className="text-3xl font-black text-red-600">{timeLeft.minutes.toString().padStart(2, '0')}</div>
+                  <div className="text-[10px] font-bold text-red-400 uppercase">Mins</div>
+                </div>
+                <div className="text-3xl font-black text-red-600">:</div>
+                <div className="flex flex-col items-center">
+                  <div className="text-3xl font-black text-red-600">{timeLeft.seconds.toString().padStart(2, '0')}</div>
+                  <div className="text-[10px] font-bold text-red-400 uppercase">Secs</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Cards ── */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start max-w-7xl mx-auto ${visible ? "" : "opacity-0"}`}>
+          {PLANS.map((plan) => {
+            const isLoading = loading === plan.id;
+            return (
+              <div
+                key={plan.id}
+                className={`card-enter plan-card ${plan.available ? "available" : ""} ${plan.id === "mega" ? "mega-special" : ""} relative rounded-3xl flex flex-col overflow-hidden bg-white/60`}
+                style={{
+                  background: plan.available ? "linear-gradient(160deg,#ffffff 0%,#f8fafc 100%)" : "rgba(0,0,0,0.015)",
+                  border: `1px solid ${plan.border}`,
+                  boxShadow: plan.available ? `0 0 0 1px ${plan.border}, 0 20px 40px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.5)` : "none",
+                }}
+              >
+                {/* Top glow line */}
+                {plan.available && (
+                  <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: `linear-gradient(90deg,transparent,${plan.accent},transparent)` }} />
+                )}
+
+                {/* Popular glow ring */}
+                {plan.id === "pro" && (
+                  <div className="glow-ring absolute -inset-px rounded-3xl pointer-events-none" style={{ border: `1px solid ${plan.accent}`, borderRadius: "inherit" }} />
+                )}
+
+                {/* Badge */}
+                {plan.badge && (
+                  <div className="absolute top-4 right-4 badge-pop">
+                    <span
+                      className="text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest"
+                      style={{
+                        background:
+                          plan.id === "value" ? "rgba(59,130,246,0.2)"
+                            : plan.id === "mega" ? "rgba(244,63,94,0.2)"
+                              : plan.id === "premium" ? "rgba(234,179,8,0.2)"
+                                : "rgba(168,85,247,0.2)",
+                        color:
+                          plan.id === "value" ? "#93c5fd"
+                            : plan.id === "mega" ? "#fda4af"
+                              : plan.id === "premium" ? "#fef08a"
+                                : "#c084fc",
+                        border:
+                          plan.id === "value" ? "1px solid rgba(59,130,246,0.35)"
+                            : plan.id === "mega" ? "1px solid rgba(244,63,94,0.35)"
+                              : plan.id === "premium" ? "1px solid rgba(234,179,8,0.35)"
+                                : "1px solid rgba(168,85,247,0.35)",
+                      }}
+                    >
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+
+                <div className="p-7 flex flex-col flex-1">
+                  {/* Icon + Name */}
+                  <div className="mb-6">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
+                      style={{
+                        background: plan.available ? plan.iconBg : "rgba(31,41,55,0.6)",
+                        boxShadow: plan.available ? `0 0 20px ${plan.glow}` : "none",
+                      }}
+                    >
+                      <plan.icon
+                        className="h-6 w-6"
+                        style={{ color: plan.available ? plan.accent : "#4b5563" }}
+                      />
+                    </div>
+                    <h2 className="text-xl font-black" style={{ color: plan.available ? "#0f172a" : "#64748b" }}>{plan.name}</h2>
+                    <p className="text-xs font-semibold mt-0.5" style={{ color: plan.available ? "rgba(15,23,42,0.5)" : "#64748b" }}>{plan.tagline}</p>
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-6">
+                    {/* MRP crossed out + discount badge — INR only */}
+                    {effectiveGateway === "payu" && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="mrp-line text-sm font-bold tabular-nums"
+                          style={{ color: "rgba(15,23,42,0.4)" }}
+                        >
+                          ₹{plan.mrp}
+                        </span>
+                        <span
+                          className="discount-badge inline-flex items-center gap-0.5 text-[11px] font-black px-2 py-0.5 rounded-full"
+                          style={{
+                            background: "linear-gradient(135deg,#dc2626,#f43f5e)",
+                            color: "#fff",
+                            boxShadow: "0 0 10px rgba(244,63,94,0.5)",
+                            transform: "rotate(-2deg)",
+                          }}
+                        >
+                          ↓{plan.discount}% OFF
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Actual price — INR */}
+                    {effectiveGateway === "payu" && (
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-lg font-bold" style={{ color: "rgba(15,23,42,0.4)" }}>₹</span>
+                        <span
+                          className="price-pop text-6xl font-black tabular-nums leading-none"
+                          style={{ color: "#0f172a" }}
+                        >
+                          {visible ? <Counter value={plan.price} /> : plan.price}
+                        </span>
+                        <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(15,23,42,0.4)" }}>one-time</span>
+                      </div>
+                    )}
+
+                    {/* Actual price — USD */}
+                    {effectiveGateway === "paypal" && (
+                      <div className="flex items-baseline gap-1 mb-2">
+                        <span className="text-lg font-bold" style={{ color: "rgba(15,23,42,0.4)" }}>$</span>
+                        <span
+                          className="price-pop text-6xl font-black tabular-nums leading-none"
+                          style={{ color: "#0f172a" }}
+                        >
+                          {plan.id === "value" ? "4.99" : plan.id === "pro" ? "9.99" : plan.id === "mega" ? "19.99" : "39.99"}
+                        </span>
+                        <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(15,23,42,0.4)" }}>one-time</span>
+                      </div>
+                    )}
+
+                    {/* Loading skeleton while geo is being fetched */}
+                    {!effectiveGateway && (
+                      <div className="h-16 w-32 rounded-xl animate-pulse mb-2" style={{ background: "rgba(0,0,0,0.06)" }} />
+                    )}
+
+                    <div
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                      style={{
+                        background:
+                          plan.id === "value" ? "rgba(59,130,246,0.12)"
+                            : plan.id === "pro" ? "rgba(168,85,247,0.12)"
+                              : plan.id === "mega" ? "rgba(244,63,94,0.12)"
+                                : "rgba(234,179,8,0.12)",
+                        color: plan.accent,
+                      }}
+                    >
+                      <Zap className="h-3 w-3" />
+                      {plan.credits.toLocaleString()} credits
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="mb-5 h-px" style={{ background: plan.available ? `linear-gradient(90deg,${plan.border},transparent)` : "rgba(107,114,128,0.1)" }} />
+
+                  {/* Features */}
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {plan.features.map((feat) => {
+                      const isDisabled = feat.startsWith("disabled:");
+                      const isMcp = feat.startsWith("mcp:");
+                      const cleanFeat = feat.replace("disabled:", "").replace("🎬 ", "").replace("mcp:", "");
+
+                      return (
+                        <li key={feat} className={`flex items-center gap-3 ${isDisabled ? "opacity-50" : ""}`}>
+                          <div
+                            className="check-icon w-5 h-5 rounded-full flex items-center justify-center shrink-0"
+                            style={{
+                              background: isDisabled ? "rgba(0,0,0,0.03)" : (
+                                plan.id === "value" ? "rgba(59,130,246,0.15)"
+                                  : plan.id === "pro" ? "rgba(168,85,247,0.15)"
+                                    : plan.id === "mega" ? "rgba(244,63,94,0.15)"
+                                      : "rgba(234,179,8,0.15)"
+                              ),
+                            }}
+                          >
+                            {isDisabled ? (
+                              <Lock className="h-3 w-3" style={{ color: "rgba(15,23,42,0.3)" }} />
+                            ) : isMcp ? (
+                              <img src="/claude-color.webp" alt="Claude" className="w-3 h-3 object-contain" />
+                            ) : feat.includes("🎬") ? (
+                              <Video className="h-3 w-3" style={{ color: plan.accent }} />
+                            ) : (
+                              <Check className="h-3 w-3" style={{ color: plan.accent }} />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium" style={{ color: isDisabled ? "rgba(15,23,42,0.4)" : "rgba(15,23,42,0.75)" }}>{cleanFeat}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* CTA — PayU (India) */}
+                  {(effectiveGateway === "payu" || !effectiveGateway) && (
+                    <button
+                      id={`plan-btn-${plan.id}`}
+                      onClick={() => handlePurchase(plan)}
+                      disabled={!!isLoading || geo.loading}
+                      className="w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                      style={{
+                        background:
+                          plan.id === "value" ? "linear-gradient(135deg,#1d4ed8,#3b82f6)"
+                            : plan.id === "pro" ? "linear-gradient(135deg,#7c3aed,#a855f7)"
+                              : plan.id === "mega" ? "linear-gradient(135deg,#be123c,#f43f5e)"
+                                : "linear-gradient(135deg,#a16207,#ca8a04)",
+                        boxShadow: `0 0 25px ${plan.glow}`,
+                      }}
+                    >
+                      {plan.id === "value" ? <Star className="h-4 w-4" /> : plan.id === "pro" ? <Crown className="h-4 w-4" /> : plan.id === "mega" ? <Layers className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                      {geo.loading ? "Loading..." : `Get ${plan.name}`}
+                    </button>
+                  )}
+
+                  {/* CTA — PayPal (International) */}
+                  {effectiveGateway === "paypal" && (
+                    <div id={`paypal-button-${plan.id}`} className="w-full" />
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── Trust strip ── */}
+        <div className={`mt-14 flex flex-wrap justify-center gap-6 transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+          {[
+            { icon: Shield, label: "Secure UPI Payment" },
+            { icon: Star, label: "24-hr refund guarantee" },
+            { icon: Check, label: "Credits never expire" },
+          ].map(({ icon: Ic, label }) => (
+            <div key={label} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border" style={{ background: "rgba(0,0,0,0.02)", borderColor: "rgba(0,0,0,0.06)" }}>
+              <Ic className="h-3.5 w-3.5" style={{ color: "rgba(15,23,42,0.5)" }} />
+              <span className="text-xs font-semibold" style={{ color: "rgba(15,23,42,0.6)" }}>{label}</span>
+            </div>
           ))}
         </div>
 
-        {/* Region selector — shown only when country is unknown */}
-        {!geo.loading && !geo.gateway && !regionOverride && (
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9998] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-4" style={{ background: "rgba(15,23,42,0.95)", borderColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)" }}>
-            <Globe className="h-5 w-5 text-purple-400 shrink-0" />
-            <span className="text-white text-sm font-semibold">Select your region for pricing</span>
-            <button
-              onClick={() => setRegionOverride("IN")}
-              className="px-4 py-2 rounded-xl text-xs font-black bg-orange-500 text-white hover:bg-orange-400 transition"
-            >
-              🇮🇳 India (INR)
-            </button>
-            <button
-              onClick={() => setRegionOverride("INTL")}
-              className="px-4 py-2 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 transition"
-            >
-              🌍 International (USD)
-            </button>
-          </div>
-        )}
-        {toast && (
-          <div className="toast-enter fixed top-6 right-6 z-[9999] px-5 py-4 rounded-2xl text-sm font-semibold shadow-2xl border max-w-sm" style={{ background: toast.ok ? "rgba(21,128,61,0.95)" : "rgba(185,28,28,0.95)", borderColor: toast.ok ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)", color: "#fff", backdropFilter: "blur(12px)" }}>
-            {toast.msg}
-          </div>
-        )}
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
-          {/* ── Header ── */}
-          <div className={`text-center mb-16 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-6 border" style={{ background: "rgba(168,85,247,0.08)", borderColor: "rgba(168,85,247,0.25)", color: "#c084fc" }}>
-              <Sparkles className="h-3 w-3" />
-              TRANSPARENT PRICING · NO SUBSCRIPTIONS
+        <div className={`mt-4 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+          <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg" style={{ background: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "#34d399", boxShadow: "0 4px 20px rgba(16,185,129,0.05)" }}>
+            <span className="text-lg">💡</span>
+            <span><strong className="text-slate-800 tracking-wide">Note:</strong> There is no monthly limit. These credits will last until you use all of them.</span>
+          </p>
+        </div>
+
+        {/* ── How Credits Work ── */}
+        <div className={`mt-24 max-w-4xl mx-auto transition-all duration-700 delay-350 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-4 border" style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)", color: "#6366f1" }}>
+              <Zap className="h-3 w-3" />
+              TRANSPARENT CREDIT SYSTEM
             </div>
-            <h1 className="text-5xl md:text-6xl font-black mb-5 tracking-tight leading-none">
-              <span className="shimmer-text">Pick your plan</span>
-            </h1>
-            <p className="text-lg md:text-xl max-w-lg mx-auto font-medium" style={{ color: "rgba(15,23,42,0.6)" }}>
-              One-time payments. Credits never expire. No recurring charges.
+            <h2 className="text-3xl font-black text-slate-900 mb-3">How We Calculate Credits</h2>
+            <p className="text-sm max-w-xl mx-auto" style={{ color: "rgba(15,23,42,0.6)" }}>
+              Simple, transparent, no hidden fees. Here&apos;s exactly how your credits are spent.
             </p>
-            {/* Campaign countdown — India (PayU) only */}
-            {effectiveGateway === "payu" && timeLeft && (
-              <div className="mt-8 inline-flex flex-col items-center p-4 rounded-2xl border" style={{ background: "rgba(239,68,68,0.05)", borderColor: "rgba(239,68,68,0.2)" }}>
-                <div className="text-red-500 font-bold mb-2 flex items-center gap-2">
-                  <Flame className="w-5 h-5 animate-pulse" /> 50% OFF FLASH SALE ENDS IN:
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-black text-red-600">{timeLeft.hours.toString().padStart(2, '0')}</div>
-                    <div className="text-[10px] font-bold text-red-400 uppercase">Hours</div>
-                  </div>
-                  <div className="text-3xl font-black text-red-600">:</div>
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-black text-red-600">{timeLeft.minutes.toString().padStart(2, '0')}</div>
-                    <div className="text-[10px] font-bold text-red-400 uppercase">Mins</div>
-                  </div>
-                  <div className="text-3xl font-black text-red-600">:</div>
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-black text-red-600">{timeLeft.seconds.toString().padStart(2, '0')}</div>
-                    <div className="text-[10px] font-bold text-red-400 uppercase">Secs</div>
-                  </div>
-                </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            {/* Left: What costs what */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+              <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.01)" }}>
+                <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(99,102,241,0.8)" }}>Credit Cost Per Action</p>
               </div>
-            )}
-          </div>
-
-          {/* ── Cards ── */}
-          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start max-w-7xl mx-auto ${visible ? "" : "opacity-0"}`}>
-            {PLANS.map((plan) => {
-              const isLoading = loading === plan.id;
-              return (
-                <div
-                  key={plan.id}
-                  className={`card-enter plan-card ${plan.available ? "available" : ""} ${plan.id === "mega" ? "mega-special" : ""} relative rounded-3xl flex flex-col overflow-hidden bg-white/60`}
-                  style={{
-                    background: plan.available ? "linear-gradient(160deg,#ffffff 0%,#f8fafc 100%)" : "rgba(0,0,0,0.015)",
-                    border: `1px solid ${plan.border}`,
-                    boxShadow: plan.available ? `0 0 0 1px ${plan.border}, 0 20px 40px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.5)` : "none",
-                  }}
-                >
-                  {/* Top glow line */}
-                  {plan.available && (
-                    <div className="absolute top-0 left-0 right-0 h-[1px]" style={{ background: `linear-gradient(90deg,transparent,${plan.accent},transparent)` }} />
-                  )}
-
-                  {/* Popular glow ring */}
-                  {plan.id === "pro" && (
-                    <div className="glow-ring absolute -inset-px rounded-3xl pointer-events-none" style={{ border: `1px solid ${plan.accent}`, borderRadius: "inherit" }} />
-                  )}
-
-                  {/* Badge */}
-                  {plan.badge && (
-                    <div className="absolute top-4 right-4 badge-pop">
-                      <span
-                        className="text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest"
-                        style={{
-                          background:
-                            plan.id === "value" ? "rgba(59,130,246,0.2)"
-                              : plan.id === "mega" ? "rgba(244,63,94,0.2)"
-                                : plan.id === "premium" ? "rgba(234,179,8,0.2)"
-                                  : "rgba(168,85,247,0.2)",
-                          color:
-                            plan.id === "value" ? "#93c5fd"
-                              : plan.id === "mega" ? "#fda4af"
-                                : plan.id === "premium" ? "#fef08a"
-                                  : "#c084fc",
-                          border:
-                            plan.id === "value" ? "1px solid rgba(59,130,246,0.35)"
-                              : plan.id === "mega" ? "1px solid rgba(244,63,94,0.35)"
-                                : plan.id === "premium" ? "1px solid rgba(234,179,8,0.35)"
-                                  : "1px solid rgba(168,85,247,0.35)",
-                        }}
-                      >
-                        {plan.badge}
-                      </span>
+              <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                {[
+                  { action: "🖼️ Text-to-Image", cost: "100 credits", display: "= 1 credit shown", color: "#8b5cf6" },
+                  { action: "✏️ AI Image Edit", cost: "100 credits", display: "= 1 credit shown", color: "#3b82f6" },
+                  { action: "🎬 Video Generation", cost: "1,500 credits", display: "= 15 credits shown", color: "#ec4899" },
+                  { action: "🎭 AI Influencer", cost: "100 credits", display: "= 1 credit shown", color: "#10b981" },
+                ].map(({ action, cost, display, color }) => (
+                  <div key={action} className="flex items-center justify-between px-6 py-4">
+                    <span className="text-sm font-semibold" style={{ color: "rgba(15,23,42,0.75)" }}>{action}</span>
+                    <div className="text-right">
+                      <span className="text-sm font-black tabular-nums" style={{ color }}>{cost}</span>
+                      <p className="text-[10px] mt-0.5" style={{ color: "rgba(15,23,42,0.4)" }}>{display}</p>
                     </div>
-                  )}
-
-                  <div className="p-7 flex flex-col flex-1">
-                    {/* Icon + Name */}
-                    <div className="mb-6">
-                      <div
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
-                        style={{
-                          background: plan.available ? plan.iconBg : "rgba(31,41,55,0.6)",
-                          boxShadow: plan.available ? `0 0 20px ${plan.glow}` : "none",
-                        }}
-                      >
-                        <plan.icon
-                          className="h-6 w-6"
-                          style={{ color: plan.available ? plan.accent : "#4b5563" }}
-                        />
-                      </div>
-                      <h2 className="text-xl font-black" style={{ color: plan.available ? "#0f172a" : "#64748b" }}>{plan.name}</h2>
-                      <p className="text-xs font-semibold mt-0.5" style={{ color: plan.available ? "rgba(15,23,42,0.5)" : "#64748b" }}>{plan.tagline}</p>
-                    </div>
-
-                    {/* Price */}
-                    <div className="mb-6">
-                      {/* MRP crossed out + discount badge — INR only */}
-                      {effectiveGateway === "payu" && (
-                        <div className="flex items-center gap-2 mb-1">
-                          <span
-                            className="mrp-line text-sm font-bold tabular-nums"
-                            style={{ color: "rgba(15,23,42,0.4)" }}
-                          >
-                            ₹{plan.mrp}
-                          </span>
-                          <span
-                            className="discount-badge inline-flex items-center gap-0.5 text-[11px] font-black px-2 py-0.5 rounded-full"
-                            style={{
-                              background: "linear-gradient(135deg,#dc2626,#f43f5e)",
-                              color: "#fff",
-                              boxShadow: "0 0 10px rgba(244,63,94,0.5)",
-                              transform: "rotate(-2deg)",
-                            }}
-                          >
-                            ↓{plan.discount}% OFF
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Actual price — INR */}
-                      {effectiveGateway === "payu" && (
-                        <div className="flex items-baseline gap-1 mb-2">
-                          <span className="text-lg font-bold" style={{ color: "rgba(15,23,42,0.4)" }}>₹</span>
-                          <span
-                            className="price-pop text-6xl font-black tabular-nums leading-none"
-                            style={{ color: "#0f172a" }}
-                          >
-                            {visible ? <Counter value={plan.price} /> : plan.price}
-                          </span>
-                          <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(15,23,42,0.4)" }}>one-time</span>
-                        </div>
-                      )}
-
-                      {/* Actual price — USD */}
-                      {effectiveGateway === "paypal" && (
-                        <div className="flex items-baseline gap-1 mb-2">
-                          <span className="text-lg font-bold" style={{ color: "rgba(15,23,42,0.4)" }}>$</span>
-                          <span
-                            className="price-pop text-6xl font-black tabular-nums leading-none"
-                            style={{ color: "#0f172a" }}
-                          >
-                            {plan.id === "value" ? "4.99" : plan.id === "pro" ? "9.99" : plan.id === "mega" ? "19.99" : "39.99"}
-                          </span>
-                          <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(15,23,42,0.4)" }}>one-time</span>
-                        </div>
-                      )}
-
-                      {/* Loading skeleton while geo is being fetched */}
-                      {!effectiveGateway && (
-                        <div className="h-16 w-32 rounded-xl animate-pulse mb-2" style={{ background: "rgba(0,0,0,0.06)" }} />
-                      )}
-
-                      <div
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
-                        style={{
-                          background:
-                            plan.id === "value" ? "rgba(59,130,246,0.12)"
-                              : plan.id === "pro" ? "rgba(168,85,247,0.12)"
-                                : plan.id === "mega" ? "rgba(244,63,94,0.12)"
-                                  : "rgba(234,179,8,0.12)",
-                          color: plan.accent,
-                        }}
-                      >
-                        <Zap className="h-3 w-3" />
-                        {plan.credits.toLocaleString()} credits
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="mb-5 h-px" style={{ background: plan.available ? `linear-gradient(90deg,${plan.border},transparent)` : "rgba(107,114,128,0.1)" }} />
-
-                    {/* Features */}
-                    <ul className="space-y-3 mb-8 flex-1">
-                      {plan.features.map((feat) => {
-                        const isDisabled = feat.startsWith("disabled:");
-                        const isMcp = feat.startsWith("mcp:");
-                        const cleanFeat = feat.replace("disabled:", "").replace("🎬 ", "").replace("mcp:", "");
-
-                        return (
-                          <li key={feat} className={`flex items-center gap-3 ${isDisabled ? "opacity-50" : ""}`}>
-                            <div
-                              className="check-icon w-5 h-5 rounded-full flex items-center justify-center shrink-0"
-                              style={{
-                                background: isDisabled ? "rgba(0,0,0,0.03)" : (
-                                  plan.id === "value" ? "rgba(59,130,246,0.15)"
-                                    : plan.id === "pro" ? "rgba(168,85,247,0.15)"
-                                      : plan.id === "mega" ? "rgba(244,63,94,0.15)"
-                                        : "rgba(234,179,8,0.15)"
-                                ),
-                              }}
-                            >
-                              {isDisabled ? (
-                                <Lock className="h-3 w-3" style={{ color: "rgba(15,23,42,0.3)" }} />
-                              ) : isMcp ? (
-                                <img src="/claude-color.webp" alt="Claude" className="w-3 h-3 object-contain" />
-                              ) : feat.includes("🎬") ? (
-                                <Video className="h-3 w-3" style={{ color: plan.accent }} />
-                              ) : (
-                                <Check className="h-3 w-3" style={{ color: plan.accent }} />
-                              )}
-                            </div>
-                            <span className="text-sm font-medium" style={{ color: isDisabled ? "rgba(15,23,42,0.4)" : "rgba(15,23,42,0.75)" }}>{cleanFeat}</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-
-                    {/* CTA — PayU (India) */}
-                      {(effectiveGateway === "payu" || !effectiveGateway) && (
-                      <button
-                        id={`plan-btn-${plan.id}`}
-                        onClick={() => handlePurchase(plan)}
-                        disabled={!!isLoading || geo.loading}
-                        className="w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-                        style={{
-                          background:
-                            plan.id === "value" ? "linear-gradient(135deg,#1d4ed8,#3b82f6)"
-                              : plan.id === "pro" ? "linear-gradient(135deg,#7c3aed,#a855f7)"
-                                : plan.id === "mega" ? "linear-gradient(135deg,#be123c,#f43f5e)"
-                                  : "linear-gradient(135deg,#a16207,#ca8a04)",
-                          boxShadow: `0 0 25px ${plan.glow}`,
-                        }}
-                      >
-                        {plan.id === "value" ? <Star className="h-4 w-4" /> : plan.id === "pro" ? <Crown className="h-4 w-4" /> : plan.id === "mega" ? <Layers className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-                        {geo.loading ? "Loading..." : `Get ${plan.name}`}
-                      </button>
-                      )}
-
-                      {/* CTA — PayPal (International) */}
-                      {effectiveGateway === "paypal" && (
-                        <div id={`paypal-button-${plan.id}`} className="w-full" />
-                      )}
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+            </div>
 
-          {/* ── Trust strip ── */}
-          <div className={`mt-14 flex flex-wrap justify-center gap-6 transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
+            {/* Right: Pack value breakdown */}
+            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
+              <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.01)" }}>
+                <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(99,102,241,0.8)" }}>What You Get Per Pack</p>
+              </div>
+              <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
+                {[
+                  { pack: "Beginner Pack ₹499", internal: "2,500 credits", images: "25 images", videos: "—", color: "#3b82f6" },
+                  { pack: "Creator Pack ₹999", internal: "4,000 credits", images: "40 images", videos: "2 videos", color: "#9333ea" },
+                  { pack: "Professional Pack ₹1,999", internal: "12,000 credits", images: "120 images", videos: "8 videos", color: "#ef4444" },
+                  { pack: "Enterprise Pack ₹3,999", internal: "30,000 credits", images: "300 images", videos: "20 videos", color: "#eab308" },
+                ].map(({ pack, internal, images, videos, color }) => (
+                  <div key={pack} className="px-6 py-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-black" style={{ color }}>{pack}</span>
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums" style={{ background: `${color}18`, color, border: `1px solid ${color}35` }}>{internal}</span>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg">🖼️</span>
+                        <span className="text-xs font-semibold" style={{ color: "rgba(15,23,42,0.6)" }}>{images}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg">🎬</span>
+                        <span className="text-xs font-semibold" style={{ color: videos === "—" ? "rgba(15,23,42,0.3)" : "rgba(15,23,42,0.6)" }}>{videos === "—" ? "No video access" : videos}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Formula note */}
+              <div className="px-6 py-4 border-t" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(99,102,241,0.03)" }}>
+                <p className="text-[11px] leading-relaxed" style={{ color: "rgba(15,23,42,0.6)" }}>
+                  <span className="font-black text-indigo-600">Formula:</span> Your balance shown ÷ 100 = images available. 1 image generation costs 100 credits, and 1 video generation costs 1,500 credits.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* ── FAQ ── */}
+        <div className={`mt-24 max-w-2xl mx-auto transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+          <h2 className="text-3xl font-black text-slate-900 text-center mb-2">Questions? Answered.</h2>
+          <p className="text-center text-sm mb-10" style={{ color: "rgba(15,23,42,0.5)" }}>Everything you need to know before buying.</p>
+          <div className="space-y-3">
             {[
-              { icon: Shield, label: "Secure UPI Payment" },
-              { icon: Star, label: "24-hr refund guarantee" },
-              { icon: Check, label: "Credits never expire" },
-            ].map(({ icon: Ic, label }) => (
-              <div key={label} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border" style={{ background: "rgba(0,0,0,0.02)", borderColor: "rgba(0,0,0,0.06)" }}>
-                <Ic className="h-3.5 w-3.5" style={{ color: "rgba(15,23,42,0.5)" }} />
-                <span className="text-xs font-semibold" style={{ color: "rgba(15,23,42,0.6)" }}>{label}</span>
-              </div>
+              { q: "What are credits?", a: "Each 100 credits = 1 AI image generation, or 1,500 credits = 1 video generation. Credits are added within 1 hour after payment verification." },
+              { q: "Do credits expire?", a: "Never. Once purchased, your credits stay on your account forever." },
+              { q: "Can I get a refund?", a: "Yes — 24-hour no-questions-asked refund policy. Contact support within 24 hours." },
+              { q: "What payment methods work?", a: "We currently accept UPI payments (Google Pay, PhonePe, Paytm, BHIM, and all UPI apps). More payment options coming soon." },
+              { q: "How long does activation take?", a: "Your subscription is activated within 1 hour after your UTR/Transaction ID is verified by our team." },
+              { q: "Which plans include video generation?", a: "Creator Pack (₹999), Professional Pack (₹1,999), and Enterprise Pack (₹3,999) include video generation access. Each video costs 1,500 credits." },
+            ].map(({ q, a }, i) => (
+              <details key={i} className="group rounded-2xl border overflow-hidden bg-white/70" style={{ borderColor: "rgba(0,0,0,0.08)", boxShadow: "0 2px 10px rgba(0,0,0,0.01)" }}>
+                <summary className="flex items-center justify-between px-6 py-4 text-sm font-bold text-slate-900 list-none cursor-pointer select-none hover:bg-black/[0.02] transition-colors">
+                  {q}
+                  <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" style={{ color: "rgba(15,23,42,0.4)" }} />
+                </summary>
+                <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: "rgba(15,23,42,0.65)" }}>{a}</p>
+              </details>
             ))}
           </div>
-
-
-
-          <div className={`mt-4 flex justify-center transition-all duration-700 delay-300 ${visible ? "opacity-100" : "opacity-0"}`}>
-            <p className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium border shadow-lg" style={{ background: "rgba(16,185,129,0.08)", borderColor: "rgba(16,185,129,0.25)", color: "#34d399", boxShadow: "0 4px 20px rgba(16,185,129,0.05)" }}>
-              <span className="text-lg">💡</span>
-              <span><strong className="text-slate-800 tracking-wide">Note:</strong> There is no monthly limit. These credits will last until you use all of them.</span>
-            </p>
-          </div>
-
-          {/* ── How Credits Work ── */}
-          <div className={`mt-24 max-w-4xl mx-auto transition-all duration-700 delay-350 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold mb-4 border" style={{ background: "rgba(99,102,241,0.08)", borderColor: "rgba(99,102,241,0.25)", color: "#6366f1" }}>
-                <Zap className="h-3 w-3" />
-                TRANSPARENT CREDIT SYSTEM
-              </div>
-              <h2 className="text-3xl font-black text-slate-900 mb-3">How We Calculate Credits</h2>
-              <p className="text-sm max-w-xl mx-auto" style={{ color: "rgba(15,23,42,0.6)" }}>
-                Simple, transparent, no hidden fees. Here&apos;s exactly how your credits are spent.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-              {/* Left: What costs what */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
-                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.01)" }}>
-                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(99,102,241,0.8)" }}>Credit Cost Per Action</p>
-                </div>
-                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
-                  {[
-                    { action: "🖼️ Text-to-Image", cost: "100 credits", display: "= 1 credit shown", color: "#8b5cf6" },
-                    { action: "✏️ AI Image Edit", cost: "100 credits", display: "= 1 credit shown", color: "#3b82f6" },
-                    { action: "🎬 Video Generation", cost: "1,500 credits", display: "= 15 credits shown", color: "#ec4899" },
-                    { action: "🎭 AI Influencer", cost: "100 credits", display: "= 1 credit shown", color: "#10b981" },
-                  ].map(({ action, cost, display, color }) => (
-                    <div key={action} className="flex items-center justify-between px-6 py-4">
-                      <span className="text-sm font-semibold" style={{ color: "rgba(15,23,42,0.75)" }}>{action}</span>
-                      <div className="text-right">
-                        <span className="text-sm font-black tabular-nums" style={{ color }}>{cost}</span>
-                        <p className="text-[10px] mt-0.5" style={{ color: "rgba(15,23,42,0.4)" }}>{display}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right: Pack value breakdown */}
-              <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.7)", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 4px 20px rgba(0,0,0,0.02)" }}>
-                <div className="px-6 py-4 border-b" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.01)" }}>
-                  <p className="text-xs font-black uppercase tracking-widest" style={{ color: "rgba(99,102,241,0.8)" }}>What You Get Per Pack</p>
-                </div>
-                <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.05)" }}>
-                  {[
-                    { pack: "Beginner Pack ₹499", internal: "2,500 credits", images: "25 images", videos: "—", color: "#3b82f6" },
-                    { pack: "Creator Pack ₹999", internal: "4,000 credits", images: "40 images", videos: "2 videos", color: "#9333ea" },
-                    { pack: "Professional Pack ₹1,999", internal: "12,000 credits", images: "120 images", videos: "8 videos", color: "#ef4444" },
-                    { pack: "Enterprise Pack ₹3,999", internal: "30,000 credits", images: "300 images", videos: "20 videos", color: "#eab308" },
-                  ].map(({ pack, internal, images, videos, color }) => (
-                    <div key={pack} className="px-6 py-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-black" style={{ color }}>{pack}</span>
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums" style={{ background: `${color}18`, color, border: `1px solid ${color}35` }}>{internal}</span>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-lg">🖼️</span>
-                          <span className="text-xs font-semibold" style={{ color: "rgba(15,23,42,0.6)" }}>{images}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-lg">🎬</span>
-                          <span className="text-xs font-semibold" style={{ color: videos === "—" ? "rgba(15,23,42,0.3)" : "rgba(15,23,42,0.6)" }}>{videos === "—" ? "No video access" : videos}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Formula note */}
-                <div className="px-6 py-4 border-t" style={{ borderColor: "rgba(0,0,0,0.06)", background: "rgba(99,102,241,0.03)" }}>
-                  <p className="text-[11px] leading-relaxed" style={{ color: "rgba(15,23,42,0.6)" }}>
-                    <span className="font-black text-indigo-600">Formula:</span> Your balance shown ÷ 100 = images available. 1 image generation costs 100 credits, and 1 video generation costs 1,500 credits.
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* ── FAQ ── */}
-          <div className={`mt-24 max-w-2xl mx-auto transition-all duration-700 delay-400 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-            <h2 className="text-3xl font-black text-slate-900 text-center mb-2">Questions? Answered.</h2>
-            <p className="text-center text-sm mb-10" style={{ color: "rgba(15,23,42,0.5)" }}>Everything you need to know before buying.</p>
-            <div className="space-y-3">
-              {[
-                { q: "What are credits?", a: "Each 100 credits = 1 AI image generation, or 1,500 credits = 1 video generation. Credits are added within 1 hour after payment verification." },
-                { q: "Do credits expire?", a: "Never. Once purchased, your credits stay on your account forever." },
-                { q: "Can I get a refund?", a: "Yes — 24-hour no-questions-asked refund policy. Contact support within 24 hours." },
-                { q: "What payment methods work?", a: "We currently accept UPI payments (Google Pay, PhonePe, Paytm, BHIM, and all UPI apps). More payment options coming soon." },
-                { q: "How long does activation take?", a: "Your subscription is activated within 1 hour after your UTR/Transaction ID is verified by our team." },
-                { q: "Which plans include video generation?", a: "Creator Pack (₹999), Professional Pack (₹1,999), and Enterprise Pack (₹3,999) include video generation access. Each video costs 1,500 credits." },
-              ].map(({ q, a }, i) => (
-                <details key={i} className="group rounded-2xl border overflow-hidden bg-white/70" style={{ borderColor: "rgba(0,0,0,0.08)", boxShadow: "0 2px 10px rgba(0,0,0,0.01)" }}>
-                  <summary className="flex items-center justify-between px-6 py-4 text-sm font-bold text-slate-900 list-none cursor-pointer select-none hover:bg-black/[0.02] transition-colors">
-                    {q}
-                    <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" style={{ color: "rgba(15,23,42,0.4)" }} />
-                  </summary>
-                  <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: "rgba(15,23,42,0.65)" }}>{a}</p>
-                </details>
-              ))}
-            </div>
-          </div>
-
         </div>
+
       </div>
-    </>
-  );
+    </div>
+  </>
+);
 }
