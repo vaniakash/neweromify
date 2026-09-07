@@ -43,10 +43,10 @@ export async function POST(request: Request) {
     const isCamp = Date.now() < CAMPAIGN_END;
 
     const tiers: Record<string, { priceRupees: number; credits: number; planName: string }> = {
-      value:   { priceRupees: 499,  credits: 2500,  planName: "Beginner Pack" },
-      pro:     { priceRupees: 999,  credits: 4000,  planName: "Creator Pack" },
-      mega:    { priceRupees: 1999, credits: 12000, planName: "Professional Pack" },
-      premium: { priceRupees: 3999, credits: 30000, planName: "Enterprise Pack" },
+      value:   { priceRupees: isCamp ? 249 : 499,  credits: 2500,  planName: "Beginner Pack" },
+      pro:     { priceRupees: isCamp ? 499 : 999,  credits: 4000,  planName: "Creator Pack" },
+      mega:    { priceRupees: isCamp ? 999 : 1999, credits: 12000, planName: "Professional Pack" },
+      premium: { priceRupees: isCamp ? 1999 : 3999, credits: 30000, planName: "Enterprise Pack" },
     };
 
     const selectedTier = tiers[packId as string] ?? tiers.value;

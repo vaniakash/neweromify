@@ -30,7 +30,7 @@ const PLANS: {
 }[] = [
     {
       id: "value", name: "Beginner Pack", tagline: "₹499 · ~$5.99",
-      price: 499, mrp: 999, discount: 50, credits: 2500, unitPrice: "",
+      price: isCamp ? 249 : 499, mrp: isCamp ? 499 : 999, discount: 50, credits: 2500, unitPrice: "",
       accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
       iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
       icon: Star,
@@ -52,7 +52,7 @@ const PLANS: {
     },
     {
       id: "pro", name: "Creator Pack", tagline: "₹999 · ~$11.99",
-      price: 999, mrp: 1999, discount: 50, credits: 4000, unitPrice: "",
+      price: isCamp ? 499 : 999, mrp: isCamp ? 999 : 1999, discount: 50, credits: 4000, unitPrice: "",
       accent: "#a855f7", glow: "rgba(168,85,247,0.3)", border: "rgba(168,85,247,0.55)",
       iconBg: "linear-gradient(135deg,#4c1d95,#6d28d9)",
       icon: Flame,
@@ -73,7 +73,7 @@ const PLANS: {
     },
     {
       id: "mega", name: "Professional Pack", tagline: "₹1,999 · ~$23.99",
-      price: 1999, mrp: 3999, discount: 50, credits: 12000, unitPrice: "",
+      price: isCamp ? 999 : 1999, mrp: isCamp ? 1999 : 3999, discount: 50, credits: 12000, unitPrice: "",
       accent: "#f43f5e", glow: "rgba(244,63,94,0.28)", border: "rgba(244,63,94,0.45)",
       iconBg: "linear-gradient(135deg,#881337,#be123c)",
       icon: Layers,
@@ -101,7 +101,7 @@ const PLANS: {
     },
     {
       id: "premium", name: "Enterprise Pack", tagline: "₹3,999 · ~$47.99",
-      price: 3999, mrp: 7999, discount: 50, credits: 30000, unitPrice: "",
+      price: isCamp ? 1999 : 3999, mrp: isCamp ? 3999 : 7999, discount: 50, credits: 30000, unitPrice: "",
       accent: "#eab308", glow: "rgba(234,179,8,0.3)", border: "rgba(234,179,8,0.55)",
       iconBg: "linear-gradient(135deg,#a16207,#ca8a04)",
       icon: Sparkles,
