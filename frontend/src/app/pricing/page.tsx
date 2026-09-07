@@ -331,13 +331,10 @@ export default function PricingPage() {
   }, [session, status]);
 
   // ── Route to correct gateway ───────────────────────────────────────────────
+  // Note: PayPal users see SDK-rendered buttons directly in the card (below).
+  // This function is only reached for the PayU button (India / unknown region).
   const handlePurchase = (plan: (typeof PLANS)[0]) => {
-    if (effectiveGateway === "paypal") {
-      // PayPal uses the SDK buttons rendered below — this path is for fallback
-      handlePayPalPurchase(plan);
-    } else {
-      handlePayUPurchase(plan);
-    }
+    handlePayUPurchase(plan);
   };
 
   return (
