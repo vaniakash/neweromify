@@ -14,7 +14,7 @@ const USD_TIERS: Record<string, { priceUSD: number; credits: number; planName: s
 async function getPayPalAccessToken(): Promise<string> {
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!;
   const secret   = process.env.PAYPAL_SECRET!;
-  const base     = process.env.PAYPAL_BASE_URL ?? "https://api-m.paypal.com";
+  const base     = "https://api-m.paypal.com"; // Force live mode
 
   const res = await fetch(`${base}/v1/oauth2/token`, {
     method: "POST",
