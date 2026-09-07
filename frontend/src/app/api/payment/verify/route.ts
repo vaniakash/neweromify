@@ -110,16 +110,32 @@ export async function POST(request: Request) {
     }
 
     // ── Update payment record ─────────────────────────────────────────────────
+    // First, check if payment is already paid (idempotency check)
+    const existingPayment = await Payment.findOne({ payuTxnId: txnid });
+    if (!existingPayment) {
+      console.error("[payu/verify] Payment record not found for txnid:", txnid);
+      return NextResponse.redirect(
+        new URL("/payment-failed?reason=record_not_found", baseUrl)
+      );
+    }
+
+    if (existingPayment.status === "paid") {
+      console.log(`[payu/verify] Payment ${txnid} already processed, skipping credit addition.`);
+      return NextResponse.redirect(
+        new URL(`/payment-success?credits=${existingPayment.creditsToAdd ?? 0}`, baseUrl)
+      );
+    }
+
     const payment = await Payment.findOneAndUpdate(
-      { payuTxnId: txnid },
+      { payuTxnId: txnid, status: { $ne: "paid" } },
       { status: "paid", payuPaymentId: mihpayid },
       { new: true }
     );
 
     if (!payment) {
-      console.error("[payu/verify] Payment record not found for txnid:", txnid);
+      // Concurrency edge case: another request just processed it
       return NextResponse.redirect(
-        new URL("/payment-failed?reason=record_not_found", baseUrl)
+        new URL(`/payment-success?credits=${existingPayment.creditsToAdd ?? 0}`, baseUrl)
       );
     }
 
