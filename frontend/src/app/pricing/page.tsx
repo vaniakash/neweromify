@@ -302,7 +302,7 @@ export default function PricingPage() {
       // Step 2: Capture the order on our server after user approves on PayPal
       // (PayPal JS SDK calls onApprove which triggers this)
       // This function is stored in window so the PayPal SDK can call it
-      (window as Record<string, unknown>)[`__paypal_capture_${plan.id}`] = async () => {
+      (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`] = async () => {
         const captureRes = await fetch("/api/payment/paypal-capture", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -355,7 +355,7 @@ export default function PricingPage() {
               window.paypal?.Buttons({
                 createOrder: () => handlePayPalPurchase(plan),
                 onApprove: async () => {
-                  const captureFn = (window as Record<string, unknown>)[`__paypal_capture_${plan.id}`];
+                  const captureFn = (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`];
                   if (typeof captureFn === "function") await captureFn();
                 },
                 onError: (err: unknown) => {
