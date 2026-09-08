@@ -1,8 +1,21 @@
 import { connectDB } from "@/lib/db";
 import { User, IUser } from "@/models/User";
 import { Payment, IPayment } from "@/models/Payment";
+import { AnalyticsEvent } from "@/models/AnalyticsEvent";
 import { formatDistanceToNow } from "date-fns";
 import { DashboardCharts } from "./DashboardCharts";
+import { VisitorStats } from "./VisitorStats";
+
+// Country code → flag + name map
+const COUNTRY_NAMES: Record<string, string> = {
+  IN: "🇮🇳 India", US: "🇺🇸 United States", GB: "🇬🇧 United Kingdom",
+  DE: "🇩🇪 Germany", FR: "🇫🇷 France", CA: "🇨🇦 Canada", AU: "🇦🇺 Australia",
+  SG: "🇸🇬 Singapore", AE: "🇦🇪 UAE", PK: "🇵🇰 Pakistan", BD: "🇧🇩 Bangladesh",
+  NL: "🇳🇱 Netherlands", BR: "🇧🇷 Brazil", ID: "🇮🇩 Indonesia", PH: "🇵🇭 Philippines",
+  NG: "🇳🇬 Nigeria", ZA: "🇿🇦 South Africa", SA: "🇸🇦 Saudi Arabia", MY: "🇲🇾 Malaysia",
+  JP: "🇯🇵 Japan", KR: "🇰🇷 South Korea", MX: "🇲🇽 Mexico", IT: "🇮🇹 Italy",
+  ES: "🇪🇸 Spain", RU: "🇷🇺 Russia", TR: "🇹🇷 Turkey", EG: "🇪🇬 Egypt",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +26,8 @@ export default async function AdminDashboard() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, 1);
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   // ── Core counts ────────────────────────────────────────────────────
   const totalUsers = await User.countDocuments();
@@ -83,7 +98,28 @@ export default async function AdminDashboard() {
   ];
   const dayData = weekdays.map((w) => ({ ...w, count: dayMap[w.dow] ?? 0 }));
 
-  // ── Recent data ────────────────────────────────────────────────────
+  // ── Visitor counts ──────────────────────────────────────────────────────
+  const [visitorsToday, visitors7d, visitors30d] = await Promise.all([
+    AnalyticsEvent.countDocuments({ event: "page_view", createdAt: { $gte: todayStart } }),
+    AnalyticsEvent.countDocuments({ event: "page_view", createdAt: { $gte: sevenDaysAgo } }),
+    AnalyticsEvent.countDocuments({ event: "page_view", createdAt: { $gte: thirtyDaysAgo } }),
+  ]);
+
+  // ── Top 5 countries ────────────────────────────────────────────────────
+  const topCountriesAgg: { _id: string; count: number }[] = await AnalyticsEvent.aggregate([
+    { $match: { event: "page_view", country: { $exists: true, $ne: null } } },
+    { $group: { _id: "$country", count: { $sum: 1 } } },
+    { $sort: { count: -1 } },
+    { $limit: 5 },
+  ]);
+  const topCountries = topCountriesAgg.map((c) => ({
+    code: c._id,
+    name: COUNTRY_NAMES[c._id] ?? `🌍 ${c._id}`,
+    count: c.count,
+  }));
+  const maxCountryCount = topCountries[0]?.count ?? 1;
+
+  // ── Recent data ──────────────────────────────────────────────────────
   const recentUsers = (await User.find().sort({ createdAt: -1 }).limit(5).lean()) as IUser[];
   const recentPayments = (await Payment.find().sort({ createdAt: -1 }).limit(5).lean()) as IPayment[];
 
@@ -96,7 +132,7 @@ export default async function AdminDashboard() {
         <p>Real-time metrics · live from the database</p>
       </div>
 
-      {/* ── All animated charts (client component) ───────────────── */}
+      {/* ── All animated charts (client component) ─────────────────── */}
       <DashboardCharts
         chartData={chartData}
         dayData={dayData}
@@ -106,6 +142,15 @@ export default async function AdminDashboard() {
         pendingRevenue={pendingRevenue}
         failedRevenue={failedRevenue}
         mrrINR={mrrINR}
+      />
+
+      {/* ── Visitor Analytics ───────────────────────────────── */}
+      <VisitorStats
+        visitorsToday={visitorsToday}
+        visitors7d={visitors7d}
+        visitors30d={visitors30d}
+        topCountries={topCountries}
+        maxCountryCount={maxCountryCount}
       />
 
       {/* ── Recent tables (server-rendered) ─────────────────────── */}
@@ -213,7 +258,10 @@ export default async function AdminDashboard() {
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div className="txn-amount">₹{p.amount.toLocaleString("en-IN")}</div>
+                    <div className="txn-amount">
+                      {(p.currency === "USD" || p.paymentMethod === "paypal") ? "$" : "₹"}
+                      {p.amount.toLocaleString((p.currency === "USD" || p.paymentMethod === "paypal") ? "en-US" : "en-IN")}
+                    </div>
                     <div suppressHydrationWarning className="txn-time">
                       {p.createdAt && formatDistanceToNow(new Date(p.createdAt), { addSuffix: true })}
                     </div>

@@ -7,6 +7,7 @@ export interface IAnalyticsEvent {
   label?: string;       // e.g. "try_now", "start_creating", "explore_tools"
   userAgent?: string;
   ip?: string;
+  country?: string;     // ISO 2-letter country code e.g. "IN", "US"
   createdAt?: Date;
 }
 
@@ -17,6 +18,7 @@ const AnalyticsEventSchema = new Schema<IAnalyticsEvent>(
     label: { type: String },
     userAgent: { type: String },
     ip: { type: String },
+    country: { type: String, index: true },
   },
   { timestamps: true }
 );
