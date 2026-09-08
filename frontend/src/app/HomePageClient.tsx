@@ -238,14 +238,7 @@ export default function HomePage() {
                         style={{ background: "rgba(244,63,94,0.12)", color: "#fb7185", border: "1px solid rgba(244,63,94,0.3)" }}>
                         🎬 Motion Control Kling
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
-                        style={{ background: "rgba(234,179,8,0.12)", color: "#fbbf24", border: "1px solid rgba(234,179,8,0.3)" }}>
-                        18+
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
-                        style={{ background: "rgba(239,68,68,0.1)", color: "#f87171", border: "1px solid rgba(239,68,68,0.25)" }}>
-                        NSFW
-                      </span>
+
                     </div>
 
                   </div>
