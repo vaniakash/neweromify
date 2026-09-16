@@ -1,4 +1,3 @@
 // form-data-compat.js
-// node-fetch v2 works with native FormData in Node 18+
-// This just re-exports the built-in FormData for compatibility
-module.exports = FormData;
+// node-fetch v2 requires the 'form-data' package to properly extract headers (like boundary)
+module.exports = require("form-data");

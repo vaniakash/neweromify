@@ -20,7 +20,7 @@ async function getDB() {
   return mongoClient.db();
 }
 
-// ── Ticket verification (shared with video backend) ───────────────────────────
+// ── Ticket verification ───────────────────────────────────────────────────────
 function verifyTicket(ticketStr) {
   try {
     const [data, sig] = ticketStr.split(".");
@@ -49,7 +49,6 @@ async function uploadToCloudinary(dataUri, resourceType) {
   const sigStr    = `folder=${folder}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`;
   const signature = crypto.createHash("sha1").update(sigStr).digest("hex");
 
-  // node-fetch compatible form data
   const FormData = require("../form-data-compat");
   const formData = new FormData();
   formData.append("file",      dataUri);
@@ -60,11 +59,11 @@ async function uploadToCloudinary(dataUri, resourceType) {
 
   const res = await fetch(
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
-    { method: "POST", body: formData }
+    { method: "POST", body: formData, headers: formData.getHeaders() }
   );
   if (!res.ok) {
     const err = await res.text().catch(() => "");
-    throw new Error(`Cloudinary ${resourceType} upload failed (${res.status}): ${err.slice(0, 200)}`);
+    throw new Error(`Cloudinary ${resourceType} upload failed (${res.status}): ${err.slice(0, 300)}`);
   }
   const data = await res.json();
   let url = data.secure_url;
@@ -73,6 +72,8 @@ async function uploadToCloudinary(dataUri, resourceType) {
 }
 
 // ── POST /motion-control ──────────────────────────────────────────────────────
+// Validates user, uploads assets to Cloudinary, submits to fal.ai queue,
+// and immediately returns { requestId } — does NOT wait for generation.
 router.post("/", async (req, res) => {
   const FAL_KEY = process.env.FAL_KEY;
   if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured on server." });
@@ -106,7 +107,7 @@ router.post("/", async (req, res) => {
   const {
     image_url: rawImage,
     video_url: rawVideo,
-    prompt              = "",
+    prompt                = "",
     character_orientation = "image",
     keep_original_sound   = true,
   } = req.body;
@@ -131,14 +132,11 @@ router.post("/", async (req, res) => {
     return res.status(422).json({ error: `Video upload failed: ${e.message}` });
   }
 
-  // 5. Deduct credits
+  // 5. Deduct credits BEFORE submitting (refund if fal.ai fails)
   await db.collection("users").updateOne({ email }, { $inc: { credits: -MOTION_CONTROL_CREDIT_COST } });
 
-  const refund = () =>
-    db.collection("users").updateOne({ email }, { $inc: { credits: MOTION_CONTROL_CREDIT_COST } });
-
+  // 6. Submit to fal.ai queue — fire and forget the polling
   try {
-    // 6. Submit to fal.ai queue
     console.log("[motion-control] Submitting to fal.ai…", { imagePublicUrl, videoPublicUrl, character_orientation });
     const falRes = await fetch(
       "https://queue.fal.run/fal-ai/kling-video/v3/pro/motion-control",
@@ -150,77 +148,101 @@ router.post("/", async (req, res) => {
     );
 
     if (!falRes.ok) {
-      await refund();
+      // Refund immediately if submission fails
+      await db.collection("users").updateOne({ email }, { $inc: { credits: MOTION_CONTROL_CREDIT_COST } });
       const errText = await falRes.text().catch(() => "");
       console.error("[motion-control] fal.ai submit error:", falRes.status, errText);
-      return res.status(502).json({ error: `fal.ai error (${falRes.status}): ${errText.slice(0, 200)}` });
+      return res.status(502).json({ error: `fal.ai error (${falRes.status}): ${errText.slice(0, 300)}` });
     }
 
-    const queued    = await falRes.json();
-    const requestId = queued.request_id;
-    console.log("[motion-control] Queued — requestId:", requestId);
+    const queued      = await falRes.json();
+    const requestId   = queued.request_id;
+    const statusUrl   = queued.status_url;
+    const responseUrl = queued.response_url;
+    console.log("[motion-control] Queued — requestId:", requestId, "statusUrl:", statusUrl);
 
-    // 7. Poll for completion — no timeout issue on Express/Render!
-    // fal.ai queue:  status → GET /requests/{id}/status
-    //                result → GET /requests/{id}
-    const base      = `https://queue.fal.run/fal-ai/kling-video/v3/pro/motion-control/requests/${requestId}`;
-    const statusUrl = `${base}/status`;
-    const resultUrl = base;
-
-    // Poll every 10s up to 8 minutes (plenty of margin for 3-4min generation)
-    const MAX_POLLS   = 48;
-    const POLL_DELAY  = 10_000;
-
-    for (let i = 0; i < MAX_POLLS; i++) {
-      await new Promise((r) => setTimeout(r, POLL_DELAY));
-
-      const statusRes = await fetch(statusUrl, { headers: { Authorization: `Key ${FAL_KEY}` } });
-      if (!statusRes.ok) {
-        console.warn(`[motion-control] status poll ${i+1} non-ok: ${statusRes.status}`);
-        continue;
-      }
-
-      const statusData = await statusRes.json();
-      const status     = statusData.status ?? "";
-      console.log(`[motion-control] poll ${i+1}/${MAX_POLLS} status: ${status}`);
-
-      if (status === "COMPLETED") {
-        const resultRes = await fetch(resultUrl, { headers: { Authorization: `Key ${FAL_KEY}` } });
-        if (!resultRes.ok) {
-          await refund();
-          return res.status(502).json({ error: "Failed to fetch result from fal.ai. Credits refunded." });
-        }
-
-        const result        = await resultRes.json();
-        const videoOutputUrl = result?.video?.url ?? result?.data?.video?.url ?? "";
-
-        if (!videoOutputUrl) {
-          await refund();
-          return res.status(502).json({ error: "No video URL in fal.ai result. Credits refunded." });
-        }
-
-        console.log("[motion-control] ✅ Done! videoUrl:", videoOutputUrl);
-        return res.json({ videoUrl: videoOutputUrl, requestId });
-      }
-
-      if (status === "FAILED" || status === "CANCELLED") {
-        await refund();
-        const reason = statusData.error ?? status;
-        console.error("[motion-control] Generation failed:", reason);
-        return res.status(422).json({ error: `Generation ${status}: ${reason}. Credits refunded.` });
-      }
-      // IN_QUEUE / IN_PROGRESS → keep polling
-    }
-
-    // If we somehow exhaust 8 minutes (unlikely for a 3-4min job)
-    await refund();
-    console.error("[motion-control] Timed out — requestId:", requestId);
-    return res.status(504).json({ error: "Generation timed out (8 min). Credits refunded. Try again." });
+    // Return immediately — frontend will poll /status/:requestId
+    // Include the exact fal.ai URLs to avoid redirect issues with node-fetch
+    return res.json({ requestId, statusUrl, responseUrl, status: "IN_QUEUE" });
 
   } catch (err) {
-    await refund();
-    console.error("[motion-control] Unexpected error:", err.message);
-    return res.status(500).json({ error: "Internal server error. Credits refunded." });
+    await db.collection("users").updateOne({ email }, { $inc: { credits: MOTION_CONTROL_CREDIT_COST } });
+    console.error("[motion-control] Unexpected error during submission:", err.message);
+    return res.status(500).json({ error: "Failed to submit job. Credits refunded." });
+  }
+});
+
+// ── GET /motion-control/status/:requestId ─────────────────────────────────────
+// Polls fal.ai for the status of a submitted job.
+// On COMPLETED → returns { status: "COMPLETED", videoUrl }
+// On FAILED    → refunds credits, returns { status: "FAILED", error }
+// On pending   → returns { status: "IN_QUEUE" | "IN_PROGRESS" }
+router.get("/status/:requestId", async (req, res) => {
+  const FAL_KEY = process.env.FAL_KEY;
+  if (!FAL_KEY) return res.status(500).json({ error: "FAL_KEY not configured." });
+
+  // Verify ticket
+  const authHeader = req.headers.authorization || "";
+  const ticketStr  = authHeader.replace("Bearer ", "").trim();
+  const ticket     = verifyTicket(ticketStr);
+  if (!ticket) return res.status(401).json({ error: "Invalid or expired ticket." });
+
+  const { requestId } = req.params;
+  if (!requestId) return res.status(400).json({ error: "requestId is required." });
+
+  // Accept both the exact fal.ai URLs (preferred) or fall back to constructing them
+  const base        = `https://queue.fal.run/fal-ai/kling-video/v3/pro/motion-control/requests/${requestId}`;
+  const statusUrl   = req.query.statusUrl   || `${base}/status`;
+  const responseUrl = req.query.responseUrl || base;
+
+  try {
+    const statusRes = await fetch(statusUrl, { headers: { Authorization: `Key ${FAL_KEY}` }, redirect: "follow" });
+    if (!statusRes.ok) {
+      const errText = await statusRes.text().catch(() => "");
+      return res.status(502).json({ error: `fal.ai status check failed (${statusRes.status}): ${errText.slice(0, 200)}` });
+    }
+
+    const statusData = await statusRes.json();
+    const status     = statusData.status ?? "UNKNOWN";
+    console.log(`[motion-control] status check for ${requestId}: ${status}`);
+
+    if (status === "COMPLETED") {
+      const resultRes = await fetch(responseUrl, { headers: { Authorization: `Key ${FAL_KEY}` }, redirect: "follow" });
+      if (!resultRes.ok) {
+        const db = await getDB();
+        await db.collection("users").updateOne({ email: ticket.email }, { $inc: { credits: MOTION_CONTROL_CREDIT_COST } });
+        return res.status(502).json({ status: "FAILED", error: "Failed to fetch result from fal.ai. Credits refunded." });
+      }
+
+      const result   = await resultRes.json();
+      const videoUrl = result?.video?.url ?? result?.data?.video?.url ?? "";
+
+      if (!videoUrl) {
+        const db = await getDB();
+        await db.collection("users").updateOne({ email: ticket.email }, { $inc: { credits: MOTION_CONTROL_CREDIT_COST } });
+        return res.status(502).json({ status: "FAILED", error: "No video URL in fal.ai result. Credits refunded." });
+      }
+
+      console.log("[motion-control] ✅ Done! videoUrl:", videoUrl);
+      return res.json({ status: "COMPLETED", videoUrl, requestId });
+    }
+
+    if (status === "FAILED" || status === "CANCELLED") {
+      // Refund credits
+      const db = await getDB();
+      await db.collection("users").updateOne({ email: ticket.email }, { $inc: { credits: MOTION_CONTROL_CREDIT_COST } });
+      const reason = statusData.error ?? status;
+      console.error("[motion-control] Generation failed:", reason);
+      return res.status(422).json({ status, error: `Generation ${status}: ${reason}. Credits refunded.` });
+    }
+
+    // IN_QUEUE or IN_PROGRESS — still waiting
+    const queuePosition = statusData.queue_position ?? null;
+    return res.json({ status, requestId, queuePosition, statusUrl, responseUrl });
+
+  } catch (err) {
+    console.error("[motion-control] status check error:", err.message);
+    return res.status(500).json({ error: "Internal server error during status check." });
   }
 });
 

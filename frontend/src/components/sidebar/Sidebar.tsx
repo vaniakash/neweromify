@@ -48,7 +48,6 @@ const navItems = [
     href: "/mcp",
     icon: Code2,
     active: true,
-    isUpcoming: true,
   },
   {
     label: "Creator",

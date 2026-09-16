@@ -25,12 +25,19 @@ const ORIENTATION_OPTIONS: { value: CharacterOrientation; label: string; desc: s
   },
 ];
 
+// Maps fal.ai status → UI stage index
+const FAL_STATUS_STAGE: Record<string, number> = {
+  IN_QUEUE:    1,
+  IN_PROGRESS: 2,
+  COMPLETED:   4,
+};
+
 const STAGES = [
-  { label: "Initializing",  desc: "Preparing request",             pct: 5,  color: "#818cf8" },
-  { label: "Uploading",     desc: "Sending assets to Kling AI",    pct: 15, color: "#60a5fa" },
-  { label: "Queuing",       desc: "Waiting for GPU slot",          pct: 30, color: "#a78bfa" },
-  { label: "Rendering",     desc: "Transferring motion to image",  pct: 82, color: "#34d399" },
-  { label: "Finalizing",    desc: "Encoding & compressing video",  pct: 97, color: "#fbbf24" },
+  { label: "Initializing",  desc: "Preparing & uploading assets",    pct: 5,  color: "#818cf8" },
+  { label: "Queuing",       desc: "Waiting for GPU slot",             pct: 20, color: "#60a5fa" },
+  { label: "Rendering",     desc: "Transferring motion to character", pct: 65, color: "#a78bfa" },
+  { label: "Finalizing",    desc: "Encoding & compressing video",     pct: 90, color: "#34d399" },
+  { label: "Done",          desc: "Your video is ready!",             pct: 100, color: "#fbbf24" },
 ];
 
 export default function MotionControlPage() {
@@ -38,35 +45,38 @@ export default function MotionControlPage() {
   const router = useRouter();
 
   // Access state
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const [credits, setCredits] = useState<number | null>(null);
+  const [hasAccess, setHasAccess]   = useState<boolean | null>(null);
+  const [credits, setCredits]       = useState<number | null>(null);
 
   // Inputs
-  const [prompt, setPrompt] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoFileName, setVideoFileName] = useState("");
-  const [orientation, setOrientation] = useState<CharacterOrientation>("image");
-  const [keepSound, setKeepSound] = useState(true);
+  const [prompt, setPrompt]                   = useState("");
+  const [imageUrl, setImageUrl]               = useState("");
+  const [imagePreview, setImagePreview]       = useState<string | null>(null);
+  const [videoUrl, setVideoUrl]               = useState("");
+  const [videoFileName, setVideoFileName]     = useState("");
+  const [orientation, setOrientation]         = useState<CharacterOrientation>("image");
+  const [keepSound, setKeepSound]             = useState(true);
   const [orientationOpen, setOrientationOpen] = useState(false);
 
-  // File upload refs
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Generation state
-  const [generating, setGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [stageIndex, setStageIndex] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
+  const [generating, setGenerating]   = useState(false);
+  const [progress, setProgress]       = useState(0);
+  const [stageIndex, setStageIndex]   = useState(0);
+  const [elapsed, setElapsed]         = useState(0);
   const [videoResult, setVideoResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [noAccess, setNoAccess] = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [noAccess, setNoAccess]       = useState(false);
+  const [queuePos, setQueuePos]       = useState<number | null>(null);
 
-  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef<number>(0);
+  const elapsedRef      = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef    = useRef<number>(0);
+  const requestIdRef    = useRef<string | null>(null);
+  const statusUrlRef    = useRef<string | null>(null);
+  const responseUrlRef  = useRef<string | null>(null);
 
   // Check access
   useEffect(() => {
@@ -80,32 +90,77 @@ export default function MotionControlPage() {
       .catch(() => setHasAccess(false));
   }, [status]);
 
-  const startProgress = useCallback(() => {
-    setProgress(0);
-    setStageIndex(0);
-    setElapsed(0);
-    startTimeRef.current = Date.now();
-
-    elapsedRef.current = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
-    }, 1000);
-
-    let p = 0;
-    progressRef.current = setInterval(() => {
-      const speed = p < 30 ? 3 : p < 82 ? 0.6 : p < 97 ? 0.15 : 0;
-      p = Math.min(p + speed + Math.random() * 0.4, 97);
-      setProgress(p);
-      const idx = [5, 15, 30, 82, 97].findLastIndex((t) => p >= t);
-      setStageIndex(Math.max(0, idx));
-    }, 800);
+  const stopAll = useCallback((finalProgress = 100, finalStage = 4) => {
+    if (elapsedRef.current)      clearInterval(elapsedRef.current);
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    elapsedRef.current      = null;
+    pollIntervalRef.current = null;
+    setProgress(finalProgress);
+    setStageIndex(finalStage);
+    setGenerating(false);
   }, []);
 
-  const stopProgress = useCallback(() => {
-    if (progressRef.current) clearInterval(progressRef.current);
-    if (elapsedRef.current) clearInterval(elapsedRef.current);
-    setProgress(100);
-    setStageIndex(4);
-  }, []);
+  // Polling function — accepts the exact fal.ai URLs from the first response
+  const startPolling = useCallback((requestId: string, initialStatusUrl?: string, initialResponseUrl?: string) => {
+    requestIdRef.current   = requestId;
+    statusUrlRef.current   = initialStatusUrl || null;
+    responseUrlRef.current = initialResponseUrl || null;
+    setStageIndex(1); // Queuing stage
+    setProgress(20);
+
+    const poll = async () => {
+      try {
+        // Build query params — pass the exact fal.ai URLs so backend can use them directly
+        const params = new URLSearchParams({ requestId });
+        if (statusUrlRef.current)   params.set("statusUrl",   statusUrlRef.current);
+        if (responseUrlRef.current) params.set("responseUrl", responseUrlRef.current);
+
+        const res  = await fetch(`/api/motion-control?${params.toString()}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          stopAll(0, 0);
+          setError(data.error || "Status check failed.");
+          return;
+        }
+
+        // Update the URLs in case they change (they shouldn't, but just in case)
+        if (data.statusUrl)   statusUrlRef.current   = data.statusUrl;
+        if (data.responseUrl) responseUrlRef.current = data.responseUrl;
+
+        const falStatus = data.status as string;
+        const newStage  = FAL_STATUS_STAGE[falStatus] ?? 1;
+        setStageIndex(newStage);
+
+        if (falStatus === "IN_QUEUE") {
+          setProgress(20);
+          if (data.queuePosition != null) setQueuePos(data.queuePosition);
+        } else if (falStatus === "IN_PROGRESS") {
+          setQueuePos(null);
+          // Animate progress from 20 → 90 while in progress
+          setProgress((prev) => Math.min(prev + 2, 90));
+        } else if (falStatus === "COMPLETED") {
+          stopAll(100, 4);
+          setVideoResult(data.videoUrl);
+          // Refresh credits display
+          fetch("/api/user/sync-pro")
+            .then((r) => r.json())
+            .then((d) => { if (typeof d.credits === "number") setCredits(Math.floor(d.credits / 100)); })
+            .catch(() => {});
+        } else if (falStatus === "FAILED" || falStatus === "CANCELLED") {
+          stopAll(0, 0);
+          setError(data.error || `Generation ${falStatus}. Credits refunded.`);
+        }
+      } catch (e) {
+        // Network error during poll — keep polling, user will see elapsed time
+        console.warn("[motion-control poll] Network error, retrying…", e);
+      }
+    };
+
+    // Poll immediately and then every 6 seconds
+    poll();
+    pollIntervalRef.current = setInterval(poll, 6000);
+  }, [stopAll]);
 
   // Image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,9 +181,7 @@ export default function MotionControlPage() {
     if (!file) return;
     setVideoFileName(file.name);
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      setVideoUrl(ev.target?.result as string);
-    };
+    reader.onload = (ev) => setVideoUrl(ev.target?.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -138,60 +191,60 @@ export default function MotionControlPage() {
       router.push("/login?callbackUrl=/tools/creator/motion-control");
       return;
     }
-
-    // Gate check — show upgrade prompt if no access
-    if (hasAccess === false) {
-      setNoAccess(true);
-      return;
-    }
+    if (hasAccess === false) { setNoAccess(true); return; }
 
     setError(null);
     setNoAccess(false);
     setVideoResult(null);
+    setQueuePos(null);
     setGenerating(true);
-    startProgress();
+    setProgress(5);
+    setStageIndex(0);
+    setElapsed(0);
+    startTimeRef.current = Date.now();
+
+    elapsedRef.current = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000));
+    }, 1000);
 
     try {
       const res = await fetch("/api/motion-control", {
-        method: "POST",
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          image_url: imageUrl,
-          video_url: videoUrl,
+        body:    JSON.stringify({
+          prompt:               prompt.trim(),
+          image_url:            imageUrl,
+          video_url:            videoUrl,
           character_orientation: orientation,
-          keep_original_sound: keepSound,
+          keep_original_sound:  keepSound,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        if (data.code === "NO_MOTION_CONTROL_ACCESS") {
-          setNoAccess(true);
-        } else {
-          setError(data.error || "Generation failed.");
-        }
-        stopProgress();
+        stopAll(0, 0);
+        if (data.code === "NO_MOTION_CONTROL_ACCESS") setNoAccess(true);
+        else setError(data.error || "Submission failed.");
         return;
       }
 
-      stopProgress();
-      setVideoResult(data.videoUrl);
+      // Successfully submitted — start polling with the exact fal.ai URLs
+      startPolling(data.requestId, data.statusUrl, data.responseUrl);
 
-      // Refresh credits
-      fetch("/api/user/sync-pro")
-        .then((r) => r.json())
-        .then((d) => {
-          if (typeof d.credits === "number") setCredits(Math.floor(d.credits / 100));
-        })
-        .catch(() => {});
     } catch (err: unknown) {
-      stopProgress();
+      stopAll(0, 0);
       setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setGenerating(false);
     }
+  };
+
+  const reset = () => {
+    stopAll(0, 0);
+    setVideoResult(null);
+    setError(null);
+    setQueuePos(null);
+    setProgress(0);
+    requestIdRef.current = null;
   };
 
   const download = () => {
@@ -201,6 +254,12 @@ export default function MotionControlPage() {
     a.download = `motion-control-${Date.now()}.mp4`;
     a.click();
   };
+
+  // Cleanup on unmount
+  useEffect(() => () => {
+    if (elapsedRef.current)      clearInterval(elapsedRef.current);
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+  }, []);
 
   const selectedOrientation = ORIENTATION_OPTIONS.find((o) => o.value === orientation)!;
 
@@ -246,8 +305,8 @@ export default function MotionControlPage() {
                   <h1 className="text-base font-bold text-slate-900">Motion Control</h1>
                   <p className="text-xs text-slate-500">Powered by Kling v3 Pro</p>
                 </div>
-                </div>
               </div>
+            </div>
 
             <div className="px-5 pb-5 space-y-5 border-t border-slate-100 pt-4">
 
@@ -324,7 +383,7 @@ export default function MotionControlPage() {
                     <Upload className="h-5 w-5 opacity-60 group-hover:opacity-100" />
                     <div className="text-center">
                       <p className="text-xs font-semibold">Upload motion reference video</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">MP4, MOV, WebM — character must be visible</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">MP4, MOV, WebM · Image orientation: max 10s · Video: max 30s</p>
                     </div>
                   </button>
                 )}
@@ -457,7 +516,7 @@ export default function MotionControlPage() {
             </button>
 
             <p className="text-[10px] text-center text-slate-400 mt-2">
-              Kling v3 Pro · ~60-180s generation time
+              Kling v3 Pro · Generation takes 3–10 minutes
             </p>
           </div>
         </div>
@@ -483,7 +542,7 @@ export default function MotionControlPage() {
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                   <button
-                    onClick={() => { setVideoResult(null); setError(null); setProgress(0); }}
+                    onClick={reset}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
                   >
                     <RefreshCw className="h-4 w-4" />
@@ -531,10 +590,13 @@ export default function MotionControlPage() {
               <h2 className="text-2xl font-black text-slate-900 mb-1 tracking-tight">
                 {STAGES[stageIndex]?.label}…
               </h2>
-              <p className="text-sm text-slate-500 mb-6">{STAGES[stageIndex]?.desc}</p>
+              <p className="text-sm text-slate-500 mb-1">{STAGES[stageIndex]?.desc}</p>
+              {queuePos != null && (
+                <p className="text-xs text-slate-400 mb-4">Queue position: #{queuePos}</p>
+              )}
 
               {/* Progress bar */}
-              <div className="w-full max-w-sm mb-3">
+              <div className="w-full max-w-sm mb-3 mt-4">
                 <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-700"
@@ -575,10 +637,10 @@ export default function MotionControlPage() {
               </div>
 
               <p className="text-[11px] mt-8 text-slate-400 text-center max-w-xs">
-                {elapsed < 20 ? "Connecting to Kling v3 Pro…" :
-                  elapsed < 60 ? "⚡ Analyzing motion patterns…" :
-                    elapsed < 120 ? "🎥 Transferring motion to character…" :
-                      "✅ Almost done — don't close this tab"}
+                {elapsed < 20  ? "Uploading assets & connecting to Kling v3 Pro…" :
+                 elapsed < 60  ? "⚡ Analyzing motion patterns…" :
+                 elapsed < 180 ? "🎥 Transferring motion to character…" :
+                                 "✅ Almost done — don't close this tab"}
               </p>
             </div>
 
@@ -596,8 +658,8 @@ export default function MotionControlPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-md">
                 {[
                   { icon: ImageIcon, label: "1. Upload Image", desc: "Your character" },
-                  { icon: Video, label: "2. Upload Video", desc: "Motion reference" },
-                  { icon: Sparkles, label: "3. Generate", desc: "Kling v3 Pro" },
+                  { icon: Video,     label: "2. Upload Video", desc: "Motion reference" },
+                  { icon: Sparkles,  label: "3. Generate",     desc: "Kling v3 Pro" },
                 ].map((step) => (
                   <div key={step.label} className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-2 text-center">
                     <step.icon className="w-5 h-5 text-violet-500" />

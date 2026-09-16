@@ -44,12 +44,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    // safety_tolerance must be a string "1"–"5"; clamp to valid range
-    const toleranceNum = Math.min(5, Math.max(1, Number(safety_tolerance) || 5));
+    // Force safety_tolerance to "5" (most permissive allowed by flux-2-pro)
     const input: Record<string, unknown> = {
       prompt,
       image_size,
-      safety_tolerance: String(toleranceNum),
+      safety_tolerance: "5",
       output_format,
       enable_safety_checker: false,
     };
@@ -70,9 +69,19 @@ export async function POST(req: NextRequest) {
       seed: (result.data as { seed?: number }).seed,
       requestId: result.requestId,
     });
-  } catch (err: unknown) {
-    const body = (err as { body?: unknown })?.body;
-    console.error("[eros/generate] Error:", err, "body:", JSON.stringify(body));
+  } catch (err: any) {
+    const status = err.status || 500;
+    const body = err.body;
+    console.error("[eros/generate] Error:", err.message, "body:", JSON.stringify(body));
+    
+    // Pass Fal validation errors (like safety checker violations) back to the client
+    if (status === 422 && body?.detail?.[0]?.msg) {
+      return NextResponse.json(
+        { error: body.detail[0].msg },
+        { status: 422 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Generation failed. Please try again." },
       { status: 500 }
