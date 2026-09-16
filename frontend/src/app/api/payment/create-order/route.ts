@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     // ── Pricing tiers ─────────────────────────────────────────────────────────
-    const CAMPAIGN_END = new Date("2026-09-07T23:42:00+05:30").getTime();
+    const CAMPAIGN_END = new Date("2026-09-22T23:59:00+05:30").getTime();
     const isCamp = Date.now() < CAMPAIGN_END;
 
     const tiers: Record<string, { priceRupees: number; credits: number; planName: string }> = {
