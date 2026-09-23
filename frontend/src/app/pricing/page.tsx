@@ -11,7 +11,7 @@ import { useSession, signIn } from "next-auth/react";
 import { useAnalytics } from "@/lib/useAnalytics";
 import {
   Check, Lock, Zap, Crown, Star, Sparkles, Shield,
-  ChevronDown, Flame, Layers, Video, type LucideIcon,
+  ChevronDown, Flame, Layers, Video,
 } from "lucide-react";
 
 /* ─── plan data ─────────────────────────────────────────────────────────── */
@@ -22,7 +22,7 @@ const PLANS: {
   id: string; name: string; tagline: string;
   price: number; mrp: number; discount: number; credits: number; unitPrice: string;
   accent: string; glow: string; border: string;
-  iconBg: string; icon: LucideIcon;
+  iconBg: string; iconImg: string;
   badge: string | null; available: boolean;
   features: string[];
   videoAccess?: boolean;
@@ -32,7 +32,7 @@ const PLANS: {
       price: 499, mrp: 999, discount: 50, credits: 2500, unitPrice: "",
       accent: "#3b82f6", glow: "rgba(59,130,246,0.28)", border: "rgba(59,130,246,0.45)",
       iconBg: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
-      icon: Star,
+      iconImg: "/compressed/star-badge.svg",
       badge: null, available: true,
       features: [
         "2,500 AI Credits",
@@ -54,7 +54,7 @@ const PLANS: {
       price: 999, mrp: 1999, discount: 50, credits: 4000, unitPrice: "",
       accent: "#a855f7", glow: "rgba(168,85,247,0.3)", border: "rgba(168,85,247,0.55)",
       iconBg: "linear-gradient(135deg,#4c1d95,#6d28d9)",
-      icon: Flame,
+      iconImg: "/compressed/seconds.svg",
       badge: "MOST POPULAR", available: true,
       videoAccess: true,
       features: [
@@ -75,7 +75,7 @@ const PLANS: {
       price: 1999, mrp: 3999, discount: 50, credits: 12000, unitPrice: "",
       accent: "#f43f5e", glow: "rgba(244,63,94,0.28)", border: "rgba(244,63,94,0.45)",
       iconBg: "linear-gradient(135deg,#881337,#be123c)",
-      icon: Layers,
+      iconImg: "/compressed/third.svg",
       badge: "MOST POPULAR", available: true,
       videoAccess: true,
       features: [
@@ -103,7 +103,7 @@ const PLANS: {
       price: 3999, mrp: 7999, discount: 50, credits: 30000, unitPrice: "",
       accent: "#eab308", glow: "rgba(234,179,8,0.3)", border: "rgba(234,179,8,0.55)",
       iconBg: "linear-gradient(135deg,#a16207,#ca8a04)",
-      icon: Sparkles,
+      iconImg: "/compressed/last.svg",
       badge: "ULTIMATE", available: true,
       videoAccess: true,
       features: [
@@ -473,9 +473,11 @@ return (
                         boxShadow: plan.available ? `0 0 20px ${plan.glow}` : "none",
                       }}
                     >
-                      <plan.icon
-                        className="h-6 w-6"
-                        style={{ color: plan.available ? plan.accent : "#4b5563" }}
+                      <img
+                        src={plan.iconImg}
+                        alt={plan.name}
+                        className="w-8 h-8 object-contain"
+                        style={{ filter: plan.available ? "none" : "grayscale(1) opacity(0.4)" }}
                       />
                     </div>
                     <h2 className="text-xl font-black" style={{ color: plan.available ? "#0f172a" : "#64748b" }}>{plan.name}</h2>
