@@ -494,8 +494,8 @@ return (
           <p className="text-lg md:text-xl max-w-lg mx-auto font-medium" style={{ color: "rgba(15,23,42,0.6)" }}>
             One-time payments. Credits never expire. No recurring charges.
           </p>
-          {/* Campaign countdown — shown for all users */}
-          {timeLeft && (
+          {/* Campaign countdown — India (PayU) only */}
+          {effectiveGateway === "payu" && timeLeft && (
             <div className="mt-8 inline-flex flex-col items-center p-4 rounded-2xl border" style={{ background: "rgba(239,68,68,0.05)", borderColor: "rgba(239,68,68,0.2)" }}>
               <div className="text-red-500 font-bold mb-2 flex items-center gap-2">
                 <Flame className="w-5 h-5 animate-pulse" /> 50% OFF FLASH SALE ENDS IN:
