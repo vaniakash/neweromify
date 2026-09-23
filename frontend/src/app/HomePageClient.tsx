@@ -231,6 +231,10 @@ export default function HomePage() {
                     {/* Feature tags */}
                     <div className="flex flex-wrap items-center gap-1.5 mt-3">
                       <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
+                        style={{ background: "linear-gradient(135deg,#7f1d1d,#dc2626)", color: "#fff", boxShadow: "0 0 12px rgba(220,38,38,0.4)" }}>
+                        🔞 18+ NSFW
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
                         style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.3)" }}>
                         ⚡ Flux 2 Pro
                       </span>
