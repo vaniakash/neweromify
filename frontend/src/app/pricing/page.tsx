@@ -41,11 +41,14 @@ const PLANS: {
         "All art styles & models",
         "Commercial use",
         "Credits never expire",
+        "nsfw:NSFW · 18+ Content Enabled",
         "mcp:Claude MCP AUTOMATION",
         "NanoBanana Pro",
         "Wan 2.7 Image Pro",
         "GPT Image 2",
-        "Seedream 4.5 Pro",
+        "Seedream 4.5",
+        "Grok Imagine Image 2.0",
+        "Qwen Image 3",
         "Qwen Image Plus",
       ],
     },
@@ -63,7 +66,11 @@ const PLANS: {
         "Image generation",
         "🎬 Limited video generation model",
         "Workflow Canvas",
+        "nsfw:NSFW · 18+ Content Enabled",
         "mcp:Claude MCP AUTOMATION",
+        "Seedream 4.5",
+        "Grok Imagine Image 2.0",
+        "Qwen Image 3",
         "disabled:Motion Control",
         "Face Swap",
         "Image Upscale",
@@ -85,7 +92,11 @@ const PLANS: {
         "Commercial use",
         "Priority queue",
         "🎬 Video Generation Access",
+        "nsfw:NSFW · 18+ Content Enabled",
         "mcp:Claude MCP AUTOMATION",
+        "Seedream 4.5",
+        "Grok Imagine Image 2.0",
+        "Qwen Image 3",
         "Wan 2.6",
         "Wan 2.2 Fast",
         "LTX-2.3",
@@ -111,17 +122,20 @@ const PLANS: {
         "Influencer Training",
         "Image generation",
         "🎬 Video generation",
+        "nsfw:NSFW · 18+ Content Enabled",
         "mcp:Claude MCP AUTOMATION",
         "Workflow Canvas",
         "Motion Control",
         "Face Swap",
         "Image Upscale",
         "Video Upscale",
+        "Seedream 4.5",
+        "Grok Imagine Image 2.0",
+        "Qwen Image 3",
         "Nano Banana 2",
         "Z-image Turbo",
         "Kling Image O3",
         "GPT Image 2",
-        "Seedream 4.5",
         "Kling 2.6 Pro",
         "Kling 3.0 Pro",
         "4K",
@@ -552,7 +566,26 @@ return (
                     {plan.features.map((feat) => {
                       const isDisabled = feat.startsWith("disabled:");
                       const isMcp = feat.startsWith("mcp:");
-                      const cleanFeat = feat.replace("disabled:", "").replace("🎬 ", "").replace("mcp:", "");
+                      const isNsfw = feat.startsWith("nsfw:");
+                      const cleanFeat = feat.replace("disabled:", "").replace("🎬 ", "").replace("mcp:", "").replace("nsfw:", "");
+
+                      if (isNsfw) {
+                        return (
+                          <li key={feat} className="flex items-center gap-2">
+                            <span
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wide"
+                              style={{
+                                background: "linear-gradient(135deg,#7f1d1d,#dc2626)",
+                                color: "#fff",
+                                boxShadow: "0 0 12px rgba(220,38,38,0.4)",
+                                letterSpacing: "0.05em",
+                              }}
+                            >
+                              🔞 {cleanFeat}
+                            </span>
+                          </li>
+                        );
+                      }
 
                       return (
                         <li key={feat} className={`flex items-center gap-3 ${isDisabled ? "opacity-50" : ""}`}>
