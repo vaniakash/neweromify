@@ -6,13 +6,12 @@
 // Unknown country   → Region selector shown
 // Campaign (50% off countdown) is India-only.
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
-import Script from "next/script";
 import { useAnalytics } from "@/lib/useAnalytics";
 import {
   Check, Lock, Zap, Crown, Star, Sparkles, Shield,
-  ChevronDown, Flame, Layers, Video, Globe, type LucideIcon,
+  ChevronDown, Flame, Layers, Video, type LucideIcon,
 } from "lucide-react";
 
 /* ─── plan data ─────────────────────────────────────────────────────────── */
@@ -196,12 +195,8 @@ export default function PricingPage() {
       .catch(() => setGeo({ country: null, currency: null, gateway: null, loading: false }));
   }, []);
 
-  // Effective gateway — allow manual override for unknown-country case
-  const effectiveGateway = regionOverride === "IN"
-    ? "payu"
-    : regionOverride === "INTL"
-      ? "paypal"
-      : geo.gateway;
+  // Always use PayU for all users (India + international)
+  const effectiveGateway = "payu";
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -276,99 +271,13 @@ export default function PricingPage() {
     }
   };
 
-  // ── PayPal checkout handler ────────────────────────────────────────────────
-  const handlePayPalPurchase = useCallback(async (plan: (typeof PLANS)[0]) => {
-    if (!plan.available) return;
-    if (status === "unauthenticated") { signIn("google"); return; }
-
-    setLoading(plan.id);
-
-    try {
-      // Step 1: Create PayPal order on our server
-      const res = await fetch("/api/payment/paypal-create-order", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          packId: plan.id,
-          userEmail: session?.user?.email ?? "",
-          userId: (session?.user as { id?: string })?.id ?? "",
-          userName: session?.user?.name ?? "User",
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to create PayPal order");
-      const { orderID } = await res.json();
-
-      // Step 2: Capture the order on our server after user approves on PayPal
-      // (PayPal JS SDK calls onApprove which triggers this)
-      // This function is stored in window so the PayPal SDK can call it
-      (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`] = async () => {
-        const captureRes = await fetch("/api/payment/paypal-capture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderID,
-          userEmail: session?.user?.email ?? "",
-        }),
-      });
-
-      if (!captureRes.ok) {
-        showToast("Payment capture failed. Please contact support.", false);
-        setLoading(null);
-        return;
-      }
-
-      const { credits } = await captureRes.json();
-      window.location.href = `/payment-success?credits=${credits}`;
-    };
-
-    return orderID;
-  } catch (err) {
-    console.error(err);
-    showToast("Something went wrong. Please try again.", false);
-    setLoading(null);
-  }
-}, [session, status]);
-
-// ── Route to correct gateway ───────────────────────────────────────────────
+// ── Route to PayU for all users ───────────────────────────────────────────
 const handlePurchase = (plan: (typeof PLANS)[0]) => {
-  if (effectiveGateway === "paypal") {
-    // PayPal uses the SDK buttons rendered below — this path is for fallback
-    handlePayPalPurchase(plan);
-  } else {
-    handlePayUPurchase(plan);
-  }
+  handlePayUPurchase(plan);
 };
 
 return (
   <>
-    {/* PayPal JS SDK — loaded only for international users */}
-    {effectiveGateway === "paypal" && (
-      <Script
-        src={`https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD`}
-        onLoad={() => {
-          // Mount PayPal buttons into each card's container
-          PLANS.forEach((plan) => {
-            const container = document.getElementById(`paypal-button-${plan.id}`);
-            if (!container || container.childNodes.length > 0) return;
-            // @ts-expect-error PayPal SDK is loaded globally
-            window.paypal?.Buttons({
-              createOrder: () => handlePayPalPurchase(plan),
-              onApprove: async () => {
-                const captureFn = (window as unknown as Record<string, unknown>)[`__paypal_capture_${plan.id}`];
-                if (typeof captureFn === "function") await captureFn();
-              },
-              onError: (err: unknown) => {
-                console.error("PayPal error:", err);
-                showToast("PayPal encountered an error. Please try again.", false);
-                setLoading(null);
-              },
-              style: { layout: "vertical", color: "blue", shape: "rect", label: "pay" },
-            }).render(`#paypal-button-${plan.id}`);
-          });
-        }}
-      />
-    )}
 
     <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -455,25 +364,7 @@ return (
         ))}
       </div>
 
-      {/* Region selector — shown only when country is unknown */}
-      {!geo.loading && !geo.gateway && !regionOverride && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9998] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-4" style={{ background: "rgba(15,23,42,0.95)", borderColor: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)" }}>
-          <Globe className="h-5 w-5 text-purple-400 shrink-0" />
-          <span className="text-white text-sm font-semibold">Select your region for pricing</span>
-          <button
-            onClick={() => setRegionOverride("IN")}
-            className="px-4 py-2 rounded-xl text-xs font-black bg-orange-500 text-white hover:bg-orange-400 transition"
-          >
-            🇮🇳 India (INR)
-          </button>
-          <button
-            onClick={() => setRegionOverride("INTL")}
-            className="px-4 py-2 rounded-xl text-xs font-black bg-blue-600 text-white hover:bg-blue-500 transition"
-          >
-            🌍 International (USD)
-          </button>
-        </div>
-      )}
+      {/* Region selector removed — PayU used for all users */}
       {toast && (
         <div className="toast-enter fixed top-6 right-6 z-[9999] px-5 py-4 rounded-2xl text-sm font-semibold shadow-2xl border max-w-sm" style={{ background: toast.ok ? "rgba(21,128,61,0.95)" : "rgba(185,28,28,0.95)", borderColor: toast.ok ? "rgba(34,197,94,0.4)" : "rgba(239,68,68,0.4)", color: "#fff", backdropFilter: "blur(12px)" }}>
           {toast.msg}
@@ -630,20 +521,6 @@ return (
                       </div>
                     )}
 
-                    {/* Actual price — USD */}
-                    {effectiveGateway === "paypal" && (
-                      <div className="flex items-baseline gap-1 mb-2">
-                        <span className="text-lg font-bold" style={{ color: "rgba(15,23,42,0.4)" }}>$</span>
-                        <span
-                          className="price-pop text-6xl font-black tabular-nums leading-none"
-                          style={{ color: "#0f172a" }}
-                        >
-                          {plan.id === "value" ? "4.99" : plan.id === "pro" ? "9.99" : plan.id === "mega" ? "19.99" : "39.99"}
-                        </span>
-                        <span className="text-xs font-semibold ml-1 mb-1 self-end" style={{ color: "rgba(15,23,42,0.4)" }}>one-time</span>
-                      </div>
-                    )}
-
                     {/* Loading skeleton while geo is being fetched */}
                     {!effectiveGateway && (
                       <div className="h-16 w-32 rounded-xl animate-pulse mb-2" style={{ background: "rgba(0,0,0,0.06)" }} />
@@ -704,31 +581,24 @@ return (
                     })}
                   </ul>
 
-                  {/* CTA — PayU (India) */}
-                  {(effectiveGateway === "payu" || !effectiveGateway) && (
-                    <button
-                      id={`plan-btn-${plan.id}`}
-                      onClick={() => handlePurchase(plan)}
-                      disabled={!!isLoading || geo.loading}
-                      className="w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-                      style={{
-                        background:
-                          plan.id === "value" ? "linear-gradient(135deg,#1d4ed8,#3b82f6)"
-                            : plan.id === "pro" ? "linear-gradient(135deg,#7c3aed,#a855f7)"
-                              : plan.id === "mega" ? "linear-gradient(135deg,#be123c,#f43f5e)"
-                                : "linear-gradient(135deg,#a16207,#ca8a04)",
-                        boxShadow: `0 0 25px ${plan.glow}`,
-                      }}
-                    >
-                      {plan.id === "value" ? <Star className="h-4 w-4" /> : plan.id === "pro" ? <Crown className="h-4 w-4" /> : plan.id === "mega" ? <Layers className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-                      {geo.loading ? "Loading..." : `Get ${plan.name}`}
-                    </button>
-                  )}
-
-                  {/* CTA — PayPal (International) */}
-                  {effectiveGateway === "paypal" && (
-                    <div id={`paypal-button-${plan.id}`} className="w-full" />
-                  )}
+                  {/* CTA — PayU (all users) */}
+                  <button
+                    id={`plan-btn-${plan.id}`}
+                    onClick={() => handlePurchase(plan)}
+                    disabled={!!isLoading || geo.loading}
+                    className="w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{
+                      background:
+                        plan.id === "value" ? "linear-gradient(135deg,#1d4ed8,#3b82f6)"
+                          : plan.id === "pro" ? "linear-gradient(135deg,#7c3aed,#a855f7)"
+                            : plan.id === "mega" ? "linear-gradient(135deg,#be123c,#f43f5e)"
+                              : "linear-gradient(135deg,#a16207,#ca8a04)",
+                      boxShadow: `0 0 25px ${plan.glow}`,
+                    }}
+                  >
+                    {plan.id === "value" ? <Star className="h-4 w-4" /> : plan.id === "pro" ? <Crown className="h-4 w-4" /> : plan.id === "mega" ? <Layers className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                    {geo.loading ? "Loading..." : `Get ${plan.name}`}
+                  </button>
                 </div>
               </div>
             );

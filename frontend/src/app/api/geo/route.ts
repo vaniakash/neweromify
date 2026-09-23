@@ -32,5 +32,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ country: "IN", currency: "INR", gateway: "payu" });
   }
 
-  return NextResponse.json({ country, currency: "USD", gateway: "paypal" });
+  // All international users also go through PayU
+  return NextResponse.json({ country, currency: "INR", gateway: "payu" });
 }
