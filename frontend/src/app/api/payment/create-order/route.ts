@@ -49,6 +49,7 @@ export async function POST(request: Request) {
       const url      = new URL(request.url);
       const override = url.searchParams.get("country");
       if (override) country = override.toUpperCase();
+      if (!country) country = "IN"; // Default to IN for local testing
     }
 
     if (country !== "IN") {
